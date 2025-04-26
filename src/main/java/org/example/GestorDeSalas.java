@@ -1,3 +1,5 @@
+//Gestor de Salas SUFRO
+
 package org.example;
 
 import java.util.Scanner;
