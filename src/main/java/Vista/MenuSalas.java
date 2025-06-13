@@ -1,10 +1,10 @@
 //Gestor de Salas SUFRO
 
-package org.example;
+package Vista;
 
 import java.util.Scanner;
 
-public class GestorDeSalas {
+public class MenuSalas {
 
     public static class Sala {
         private String nombre;
@@ -48,19 +48,22 @@ public class GestorDeSalas {
             opcion = scanner.nextInt();
 
             switch (opcion) {
-                case 1:
+                case 1 -> {
                     filtrarSalas(scanner);
                     break;
-                case 2:
+                }
+                case 2 -> {
                     AgendarSalas.main(null);
                     break;
-                case 3:
+                }
+                case 3 -> {
                     break;
-                case 4:
+                }
+                case 4 -> {
                     System.out.println("Saliendo del programa...");
                     break;
-                default:
-                    System.out.println("Opción inválida, intenta de nuevo.");
+            }
+                default -> System.out.println("Opción inválida, intenta de nuevo.");
             }
 
             System.out.println();
@@ -137,7 +140,7 @@ public class GestorDeSalas {
                     case 2:
                         break;
                     case 3:
-                        GestorDeSalas.main(null);
+                            MenuSalas.main(null);
                         break;
                     default:
                         System.out.println("Opción inválida, intenta de nuevo.");
