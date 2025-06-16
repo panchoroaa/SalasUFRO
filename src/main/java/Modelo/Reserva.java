@@ -29,3 +29,4 @@ public class Reserva {
         return String.format("Reserva -> Sala: %s, Materia: %s , Día: %d, Hora: %s", sala.getNombre(), materia , dia, hora);
     }
 }
+//
