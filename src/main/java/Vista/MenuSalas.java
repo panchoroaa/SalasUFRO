@@ -1,38 +1,16 @@
-//Gestor de Salas SUFRO
+/** Gestor de Salas SUFRO
+* TODO: Hay que reescribir esto; debería encargarse de la parte del menú solamente,
+ * esta cosa debería solo recibir los scanner.nextLine y tirarselo a las otras clases.
+ *
+ *TODO: Unit testing.
+ */
 
 package Vista;
-
+import Modelo.Sala;
 import java.util.Scanner;
 
 public class MenuSalas {
 
-    public static class Sala {
-        private String nombre;
-        private String tamano;
-
-        public Sala(String nombre, String tamano) {
-            this.nombre = nombre;
-            this.tamano = tamano;
-        }
-
-        public String getNombre() {
-            return nombre;
-        }
-        public String getTamano() {
-            return tamano;
-        }
-        @Override
-        public String toString() {return "Nombre: "+nombre+" Tamaño: "+tamano;}
-    }
-
-    static Sala[] salas = {
-            new Sala("Sala 1", "pequeña"),
-            new Sala("Sala 2", "pequeña"),
-            new Sala("Sala 3", "mediana"),
-            new Sala("Sala 4", "mediana"),
-            new Sala("Sala 5", "grande"),
-            new Sala("Sala 6", "grande")
-    };
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -53,7 +31,6 @@ public class MenuSalas {
                     break;
                 }
                 case 2 -> {
-                    AgendarSalas.main(null);
                     break;
                 }
                 case 3 -> {
@@ -85,7 +62,6 @@ public class MenuSalas {
 
     public static void filtrarSalas(Scanner scanner) {
         System.out.println("====== FILTRAR SALAS ======");
-
         System.out.println("Selecciona un día de la semana (1=Lunes ... 5=Viernes): ");
         int dia = scanner.nextInt();
         scanner.nextLine();
@@ -106,56 +82,6 @@ public class MenuSalas {
         System.out.println("Tamaño solicitado: " + tamano);
         System.out.println("Salas disponibles:");
 
-        boolean encontrada = false;
-        for (Sala sala : salas) {
-            if (sala.getTamano().equalsIgnoreCase(tamano)) {
-                System.out.println("- " + sala.getNombre());
-                encontrada = true;
             }
+
         }
-
-        if (!encontrada) {
-            System.out.println("No se encontraron salas disponibles para ese tamaño.");
-        }
-    }
-
-    public static class AgendarSalas {
-        public static void main (String[]args){
-            Scanner scannerSalas = new Scanner(System.in);
-            int opcionSalas;
-            do {
-                System.out.println("====== MENÚ DE AGENDAMIENTO ======");
-                System.out.println("Estas son las salas disponibles: ");
-                for (Sala sala :salas){
-                    System.out.println(sala);
-                }
-
-                System.out.println("3. Volver al menú principal");
-                System.out.print("Selecciona una opción: ");
-                opcionSalas = scannerSalas.nextInt();
-
-                switch (opcionSalas) {
-                    case 1:
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                            MenuSalas.main(null);
-                        break;
-                    default:
-                        System.out.println("Opción inválida, intenta de nuevo.");
-                }
-
-                System.out.println();
-            } while (opcionSalas != 3);
-
-            scannerSalas.close();
-        }
-
-
-    }
-
-}
-
-
-//
