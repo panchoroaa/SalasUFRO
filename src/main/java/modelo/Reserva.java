@@ -1,11 +1,5 @@
 package Modelo;
 
-/**Esta es la clase que guardaría las reservas de salas.
- * TODO: Crear una clase que se encargue de "Apartar" las salas que se obtienen de la reserva,
- * es decir, que sea capaz de "bloquear" la sala para que no sea reservada en el mismo horario
- * por distintas materias.
-*/
-
 public class Reserva {
     private final Sala sala;
     private final String materia;
