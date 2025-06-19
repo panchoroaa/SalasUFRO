@@ -1,10 +1,11 @@
 package launcher;
 
-import vista.MenuVista;
+import vista.MenuSalas;
 
-public class Main {
+public class Inicio {
     public static void main(String[] args) {
-        MenuVista menu = new MenuVista();
+        MenuSalas menu = new MenuSalas();
         menu.iniciarMenu();
+        System.out.println("Ejecutando main...");
     }
 }

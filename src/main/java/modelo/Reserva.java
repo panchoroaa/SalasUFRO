@@ -1,4 +1,4 @@
-package Modelo;
+package modelo;
 
 public class Reserva {
     private final Sala sala;

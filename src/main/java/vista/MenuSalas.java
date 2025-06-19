@@ -2,7 +2,7 @@ package vista;
 
 import java.util.Scanner;
 
-public class MenuVista {
+public class MenuSalas {
     private final Scanner scanner = new Scanner(System.in);
     private final SelectorMenu selector = new SelectorMenu();
 
@@ -31,7 +31,7 @@ public class MenuVista {
         try {
             return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            System.out.println("Debe ingresar un número.");
+            System.out.println("Debe ingresar un número válido.");
             return -1;
         }
     }
