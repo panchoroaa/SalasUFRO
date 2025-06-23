@@ -23,3 +23,4 @@ public class ProfesorControlador {
         System.out.println("Profesor registrado: " + profe.getNombre());
     }
 }
+//a

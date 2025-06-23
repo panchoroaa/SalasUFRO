@@ -19,3 +19,4 @@ public abstract class Sala {
         return String.format("ID: %s | Nombre: %s | Tamaño: %s", id, nombre, getTamano());
     }
 }
+//a
