@@ -2,42 +2,35 @@ package modelo;
 
 public class Horario {
     private final String dia;
-    private final String horaInicio;
-    private final String horaFin;
+    private final BloqueHorario bloque;
 
-    public Horario(String dia, String horaInicio, String horaFin) {
-        this.dia = dia;
-        this.horaInicio = horaInicio;
-        this.horaFin = horaFin;
+    public Horario(String dia, BloqueHorario bloque) {
+        if (dia == null || dia.isBlank()) {
+            throw new IllegalArgumentException("El día no puede estar vacío.");
+        }
+        if (bloque == null) {
+            throw new IllegalArgumentException("Debe seleccionar un bloque horario válido.");
+        }
+
+        this.dia = dia.trim();
+        this.bloque = bloque;
     }
 
     public String getDia() {
         return dia;
     }
 
-    public String getHoraInicio() {
-        return horaInicio;
-    }
-
-    public String getHoraFin() {
-        return horaFin;
+    public BloqueHorario getBloque() {
+        return bloque;
     }
 
     public boolean conflictuaCon(Horario otro) {
-        if (!this.dia.equals(otro.dia)) {
-            return false;
-        }
-
-        int inicio1 = Integer.parseInt(this.horaInicio.replace(":", ""));
-        int fin1 = Integer.parseInt(this.horaFin.replace(":", ""));
-        int inicio2 = Integer.parseInt(otro.horaInicio.replace(":", ""));
-        int fin2 = Integer.parseInt(otro.horaFin.replace(":", ""));
-
-        return (inicio1 < fin2 && fin1 > inicio2);
+        if (otro == null) return false;
+        return this.dia.equalsIgnoreCase(otro.dia) && this.bloque == otro.bloque;
     }
 
     @Override
     public String toString() {
-        return "Día: " + dia + ", Desde: " + horaInicio + " hasta: " + horaFin;
+        return String.format("Día: %s, Bloque: %s", dia, bloque);
     }
 }
