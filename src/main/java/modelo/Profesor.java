@@ -25,4 +25,23 @@ public class Profesor {
     public List<String> getAsignaturas() {
         return new ArrayList<>(asignaturas);
     }
+
+    public void agregarAsignatura(String asignatura) {
+        if (!asignaturas.contains(asignatura)) {
+            asignaturas.add(asignatura);
+        }
+    }
+
+    public void eliminarAsignatura(String asignatura) {
+        asignaturas.remove(asignatura);
+    }
+
+    @Override
+    public String toString() {
+        return "Profesor{" +
+                "nombre='" + nombre + '\'' +
+                ", departamento='" + departamento + '\'' +
+                ", asignaturas=" + asignaturas +
+                '}';
+    }
 }
