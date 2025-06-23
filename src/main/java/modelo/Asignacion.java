@@ -15,3 +15,4 @@ public class Asignacion {
     public Sala getSala() { return sala; }
     public Horario getHorario() { return horario; }
 }
+//a

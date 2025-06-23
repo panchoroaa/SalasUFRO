@@ -11,3 +11,4 @@ public class SalaMediana extends Sala {
         return "Mediana";
     }
 }
+//a

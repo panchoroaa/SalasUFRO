@@ -11,3 +11,4 @@ public class SalaPequena extends Sala {
         return "Pequeña";
     }
 }
+//a

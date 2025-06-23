@@ -1,6 +1,7 @@
 package modelo;
 
-public enum BloqueHorario {
+public enum
+BloqueHorario {
     BLOQUE_1("08:30", "09:30"),
     BLOQUE_2("09:40", "10:40"),
     BLOQUE_3("10:50", "11:50"),
@@ -32,3 +33,4 @@ public enum BloqueHorario {
         return horaInicio + " - " + horaFin;
     }
 }
+//a

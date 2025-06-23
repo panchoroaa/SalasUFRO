@@ -1,17 +1,28 @@
 package modelo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Profesor {
     private String nombre;
     private String departamento;
-    private String asignatura;
+    private List<String> asignaturas;
 
-    public Profesor(String nombre, String departamento, String asignatura) {
+    public Profesor(String nombre, String departamento) {
         this.nombre = nombre;
         this.departamento = departamento;
-        this.asignatura = asignatura;
+        this.asignaturas = new ArrayList<>();
     }
 
-    public String getNombre() { return nombre; }
-    public String getDepartamento() { return departamento; }
-    public String getAsignatura() { return asignatura; }
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getDepartamento() {
+        return departamento;
+    }
+
+    public List<String> getAsignaturas() {
+        return new ArrayList<>(asignaturas);
+    }
 }
