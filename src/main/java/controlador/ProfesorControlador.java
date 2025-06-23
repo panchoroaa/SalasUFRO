@@ -1,5 +1,7 @@
 package controlador;
 
+import java.util.List;
+import java.util.ArrayList;
 import modelo.Profesor;
 import java.util.Scanner;
 
@@ -14,13 +16,24 @@ public class ProfesorControlador {
         System.out.print("Departamento: ");
         String departamento = scanner.nextLine();
 
-        System.out.print("Asignatura: ");
-        String asignatura = scanner.nextLine();
+        System.out.println("Ingresa las asignaturas separadas por coma (ej. Matematicas, Fisica, Programacion):");
+        String asignaturasInput = scanner.nextLine();
 
-        Profesor profe = new Profesor(nombre, departamento, asignatura);
+        // Separar asignaturas y limpiar espacios
+        String[] asignaturasArray = asignaturasInput.split(",");
+        List<String> asignaturas = new ArrayList<>();
+        for (String asignatura : asignaturasArray) {
+            asignaturas.add(asignatura.trim());
+        }
 
-        // Más adelante: guardar en archivo o lista
-        System.out.println("Profesor registrado: " + profe.getNombre());
+        // Crear profesor
+        Profesor profe = new Profesor(nombre, departamento);
+        for (String asignatura : asignaturas) {
+            profe.agregarAsignatura(asignatura);
+        }
+
+        // Confirmación
+        System.out.println("Profesor registrado exitosamente:");
+        System.out.println(profe);
     }
 }
-//a

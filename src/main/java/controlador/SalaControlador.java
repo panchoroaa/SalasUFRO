@@ -1,9 +1,6 @@
 package controlador;
 
 import modelo.Sala;
-import modelo.SalaPequena;
-import modelo.SalaMediana;
-import modelo.SalaGrande;
 
 import java.util.Scanner;
 
