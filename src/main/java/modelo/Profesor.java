@@ -1,17 +1,24 @@
 package modelo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Profesor {
     private String nombre;
     private String departamento;
-    private List<String> asignaturas;
+    private Map<String, Integer> asignaturasConAlumnos;
 
     public Profesor(String nombre, String departamento) {
         this.nombre = nombre;
         this.departamento = departamento;
-        this.asignaturas = new ArrayList<>();
+        this.asignaturasConAlumnos = new HashMap<>(); // Inicializa el mapa
+    }
+
+
+    public void agregarAsignatura(String asignatura, int cantidadAlumnos) {
+        this.asignaturasConAlumnos.put(asignatura, cantidadAlumnos);
     }
 
     public String getNombre() {
@@ -22,26 +29,41 @@ public class Profesor {
         return departamento;
     }
 
-    public List<String> getAsignaturas() {
-        return new ArrayList<>(asignaturas);
+    public Map<String, Integer> getAsignaturasConAlumnos() {
+        return asignaturasConAlumnos;
     }
 
-    public void agregarAsignatura(String asignatura) {
-        if (!asignaturas.contains(asignatura)) {
-            asignaturas.add(asignatura);
-        }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
-    public void eliminarAsignatura(String asignatura) {
-        asignaturas.remove(asignatura);
+    public void setDepartamento(String departamento) {
+        this.departamento = departamento;
     }
 
+    /**
+     * Retorna una representación en cadena del Profesor, incluyendo
+     * su nombre, departamento y una lista de asignaturas con la cantidad de alumnos.
+     * Ejemplo: "Nombre: Juan Perez, Departamento: Ciencias, Asignaturas: Matematicas (30 alumnos); Fisica (25 alumnos)"
+     */
     @Override
     public String toString() {
-        return "Profesor{" +
-                "nombre='" + nombre + '\'' +
-                ", departamento='" + departamento + '\'' +
-                ", asignaturas=" + asignaturas +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Nombre: ").append(nombre)
+                .append(", Departamento: ").append(departamento)
+                .append(", Asignaturas: ");
+
+        if (asignaturasConAlumnos.isEmpty()) {
+            sb.append("Ninguna");
+        } else {
+            List<String> tempAsignaturas = new ArrayList<>();
+            for (Map.Entry<String, Integer> entry : asignaturasConAlumnos.entrySet()) {
+
+                tempAsignaturas.add(entry.getKey() + " (" + entry.getValue() + " alumnos)");
+            }
+
+            sb.append(String.join("; ", tempAsignaturas));
+        }
+        return sb.toString();
     }
 }
