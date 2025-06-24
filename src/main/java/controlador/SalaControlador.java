@@ -18,7 +18,7 @@ public class SalaControlador {
     private static final String NOMBRE_ARCHIVO_SALAS = "SalasRegistradas.txt";
 
     public SalaControlador() {
-        cargarSalas(); // Load existing salas when controller is initialized
+        cargarSalas(); // Carga las salas existentes cuando cargue
     }
 
     public void registrarSala() {
