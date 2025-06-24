@@ -1,4 +1,4 @@
-package vista;
+package controlador;
 
 import java.util.Scanner;
 import modelo.BloqueHorario;

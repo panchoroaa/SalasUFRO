@@ -4,14 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Profesor {
+    private String rut;
     private String nombre;
     private String departamento;
     private List<String> asignaturas;
 
     public Profesor(String nombre, String departamento) {
+        this.rut = rut;
         this.nombre = nombre;
         this.departamento = departamento;
         this.asignaturas = new ArrayList<>();
+    }
+
+    public String getRut() {
+        return rut;
     }
 
     public String getNombre() {
@@ -39,6 +45,7 @@ public class Profesor {
     @Override
     public String toString() {
         return "Profesor{" +
+                "Rut=" + rut + '\'' +
                 "nombre='" + nombre + '\'' +
                 ", departamento='" + departamento + '\'' +
                 ", asignaturas=" + asignaturas +
