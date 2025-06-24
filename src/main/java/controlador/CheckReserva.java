@@ -1,5 +1,6 @@
 package controlador;
 
+import modelo.BloqueHorario;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -97,6 +98,30 @@ public class CheckReserva {
             return false;
         }
     }
+    public String reservaLibre(String nombreSala, BloqueHorario bloque) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosReservas.json"));
 
+            // Verificar si existe la sala
+            if (!rootNode.has(nombreSala)) {
+                return "Disponible"; // Si la sala no está en el registro, está disponible
+            }
+
+            // Obtener las reservas de la sala
+            JsonNode salaNode = rootNode.get(nombreSala);
+
+            // Verificar el estado para el bloque específico
+            if (salaNode.has(bloque.toString())) {
+                return salaNode.get(bloque.toString()).asText();
+            }
+
+            return "Disponible"; // Si no hay registro para ese bloque, está disponible
+
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo de reservas: " + e.getMessage());
+            return "Error al verificar disponibilidad";
+        }
+    }
 
 }

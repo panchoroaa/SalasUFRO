@@ -1,0 +1,12 @@
+{
+  "LAB. COMP. 101": {
+    "08:30 - 09:30": "Ocupado",
+    "09:40 - 10:40": "Disponible",
+    "10:50 - 11:50": "Ocupado"
+  },
+  "Auditorio": {
+    "08:30 - 09:30": "Disponible",
+    "09:40 - 10:40": "Disponible",
+    "10:50 - 11:50": "Disponible"
+  }
+}
