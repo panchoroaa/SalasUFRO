@@ -15,9 +15,8 @@ public class SelectorMenu {
             case 2 -> salaControlador.registrarSala();
             case 3 -> asignacionControlador.asignarSalaAProfesor();
 
-            case 7 -> System.out.println("Saliendo del sistema...");
+            case 7 -> System.out.println("Saliendo del sistema.");
             default -> System.out.println("Opción inválida. Intente de nuevo.");
         }
     }
 }
-//a

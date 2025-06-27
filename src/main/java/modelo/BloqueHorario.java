@@ -33,4 +33,3 @@ BloqueHorario {
         return horaInicio + " - " + horaFin;
     }
 }
-//a
