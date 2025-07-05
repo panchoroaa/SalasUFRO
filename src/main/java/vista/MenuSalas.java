@@ -12,7 +12,7 @@ public class MenuSalas {
             mostrarMenu();
             opcion = obtenerOpcionUsuario();
             selector.ejecutarOpcion(opcion);
-        } while (opcion != 6);
+        } while (opcion != 7);
     }
 
     private void mostrarMenu() {
@@ -22,7 +22,8 @@ public class MenuSalas {
         System.out.println("3. Ver disponibilidad");
         System.out.println("4. Modificar/cancelar asignación");
         System.out.println("5. Ver asignaciones");
-        System.out.println("6. Salir");
+        System.out.println("6. Agregar asignatura a profesor"); // Nueva opción
+        System.out.println("7. Salir");
         System.out.print("Seleccione una opción: ");
     }
 

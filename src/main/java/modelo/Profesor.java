@@ -34,6 +34,18 @@ public class Profesor {
         return asignaturasImpartidas.size();
     }
 
+    public void agregarAsignatura(String nombreAsignatura, int cantidadAlumnos) {
+        Asignatura nuevaAsignatura = new Asignatura(
+                nombreAsignatura,  // nombre
+                "",               // código (vacío por ahora)
+                "",               // carrera (vacía por ahora)
+                1,                // semestre por defecto
+                cantidadAlumnos
+        );
+        this.asignaturasImpartidas.add(nuevaAsignatura);
+    }
+
+
     public String getDepartamento() {
         return departamento;
     }
