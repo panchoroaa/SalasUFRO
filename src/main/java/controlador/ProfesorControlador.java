@@ -1,76 +1,191 @@
 package controlador;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import modelo.Profesor;
 import modelo.Asignatura;
+import persistencia.JsonDataManager;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class ProfesorControlador {
-    private final Scanner scanner = new Scanner(System.in);
-    private static final String NOMBRE_ARCHIVO = "BaseDatosProfesores.json";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Scanner scanner;
+    private final JsonDataManager jsonDataManager;
+    private List<Profesor> profesores;
+
+    public ProfesorControlador() {
+        this.scanner = new Scanner(System.in);
+        this.jsonDataManager = new JsonDataManager();
+        this.profesores = jsonDataManager.cargarProfesores();
+    }
 
     public void registrarProfesor() {
         System.out.println("\n=== Registro de Profesor ===");
 
-        System.out.print("RUT del Profesor: ");
-        String rut = scanner.nextLine();
+        String rut = obtenerRutProfesor();
+        if (rut == null) return;
 
         System.out.print("Nombre del Profesor: ");
-        String nombre = scanner.nextLine();
+        String nombre = scanner.nextLine().trim();
+        if (nombre.isEmpty()) {
+            System.out.println("El nombre no puede estar vacío.");
+            return;
+        }
 
         System.out.print("Departamento: ");
-        String departamento = scanner.nextLine();
+        String departamento = scanner.nextLine().trim();
+        if (departamento.isEmpty()) {
+            System.out.println("El departamento no puede estar vacío.");
+            return;
+        }
 
-        // Generar ID único
-        String id = UUID.randomUUID().toString().substring(0, 8);
+        String id = generarIdUnico();
+        Profesor nuevoProfesor = new Profesor(nombre, rut, departamento, id);
 
-        Profesor profe = new Profesor(nombre, departamento);
-        profe.setRut(rut);
-        profe.setId(id);
-
-        // Resto del código para agregar asignaturas...
-
-        guardarProfesorEnArchivo(profe);
-
-        System.out.println("\nProfesor registrado exitosamente:");
-        System.out.println(profe);
+        if (registrarAsignaturas(nuevoProfesor)) {
+            profesores.add(nuevoProfesor);
+            jsonDataManager.guardarProfesores(profesores);
+            System.out.println("\nProfesor registrado exitosamente:");
+            System.out.println(nuevoProfesor);
+        }
     }
 
-    private void guardarProfesorEnArchivo(Profesor profesor) {
-        try {
-            File archivo = new File(NOMBRE_ARCHIVO);
-            ObjectNode rootNode;
-            ArrayNode profesoresArray;
+    private String obtenerRutProfesor() {
+        while (true) {
+            System.out.print("RUT del Profesor (formato: 12345678-9): ");
+            String rut = scanner.nextLine().trim();
 
-            if (archivo.exists()) {
-                rootNode = (ObjectNode) objectMapper.readTree(archivo);
-                profesoresArray = (ArrayNode) rootNode.get("profesores");
-            } else {
-                rootNode = objectMapper.createObjectNode();
-                profesoresArray = objectMapper.createArrayNode();
-                rootNode.set("profesores", profesoresArray);
+            if (rut.isEmpty()) {
+                System.out.println("El RUT no puede estar vacío.");
+                return null;
             }
 
-            ObjectNode profesorNode = objectMapper.createObjectNode();
-            profesorNode.put("rut", profesor.getRut());
-            profesorNode.put("nombre", profesor.getNombre());
-            profesorNode.put("departamento", profesor.getDepartamento());
-            profesorNode.put("ID", profesor.getId());
+            if (!validarFormatoRut(rut)) {
+                System.out.println("Formato de RUT inválido. Use el formato: 12345678-9");
+                continue;
+            }
 
-            profesoresArray.add(profesorNode);
+            if (buscarProfesorPorRut(rut) != null) {
+                System.out.println("Ya existe un profesor con este RUT.");
+                return null;
+            }
 
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(archivo, rootNode);
-            System.out.println("Datos del profesor guardados en " + NOMBRE_ARCHIVO);
-
-        } catch (IOException e) {
-            System.err.println("Error al guardar el profesor en el archivo: " + e.getMessage());
+            return rut;
         }
+    }
+
+    private boolean validarFormatoRut(String rut) {
+        return rut.matches("\\d{7,8}-[\\dkK]");
+    }
+
+    private String generarIdUnico() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private boolean registrarAsignaturas(Profesor profesor) {
+        boolean asignaturasRegistradas = false;
+
+        while (true) {
+            System.out.println("\n=== Registro de Asignatura ===");
+            System.out.println("Presione Enter sin ingresar datos para terminar");
+
+            System.out.print("Nombre de la asignatura: ");
+            String nombreAsignatura = scanner.nextLine().trim();
+            if (nombreAsignatura.isEmpty()) {
+                break;
+            }
+
+            System.out.print("Código de la asignatura (ej: ICC101): ");
+            String codigo = scanner.nextLine().trim();
+            if (!validarCodigoAsignatura(codigo)) {
+                System.out.println("Formato de código inválido. Debe ser 3 letras seguidas de 3 números.");
+                continue;
+            }
+
+            System.out.print("Carrera: ");
+            String carrera = scanner.nextLine().trim();
+            if (carrera.isEmpty()) {
+                System.out.println("La carrera no puede estar vacía.");
+                continue;
+            }
+
+            int semestre = obtenerNumeroPositivo("Semestre: ");
+            if (semestre == -1) continue;
+
+            int cantidadAlumnos = obtenerNumeroPositivo("Cantidad de alumnos: ");
+            if (cantidadAlumnos == -1) continue;
+
+            Asignatura nuevaAsignatura = new Asignatura(nombreAsignatura, codigo, carrera, semestre, cantidadAlumnos);
+            profesor.agregarAsignatura(nuevaAsignatura);
+            asignaturasRegistradas = true;
+            System.out.println("Asignatura agregada exitosamente.");
+        }
+
+        if (!asignaturasRegistradas) {
+            System.out.println("Debe registrar al menos una asignatura.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validarCodigoAsignatura(String codigo) {
+        return codigo.matches("[A-Z]{3}\\d{3}");
+    }
+
+    private int obtenerNumeroPositivo(String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            try {
+                int numero = Integer.parseInt(scanner.nextLine().trim());
+                if (numero <= 0) {
+                    System.out.println("El número debe ser positivo.");
+                    return -1;
+                }
+                return numero;
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, ingrese un número válido.");
+                return -1;
+            }
+        }
+    }
+
+    public Profesor buscarProfesorPorRut(String rut) {
+        for (Profesor profesor : profesores) {
+            if (profesor.getRut().equalsIgnoreCase(rut)) {
+                return profesor;
+            }
+        }
+        return null;
+    }
+
+    public List<Profesor> getProfesoresRegistrados() {
+        return new ArrayList<>(profesores);
+    }
+
+    public void actualizarProfesor(Profesor profesor) {
+        int index = -1;
+        for (int i = 0; i < profesores.size(); i++) {
+            if (profesores.get(i).getRut().equals(profesor.getRut())) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index != -1) {
+            profesores.set(index, profesor);
+            jsonDataManager.guardarProfesores(profesores);
+        }
+    }
+
+    public boolean eliminarProfesor(String rut) {
+        Profesor profesor = buscarProfesorPorRut(rut);
+        if (profesor != null) {
+            profesores.remove(profesor);
+            jsonDataManager.guardarProfesores(profesores);
+            return true;
+        }
+        return false;
     }
 }

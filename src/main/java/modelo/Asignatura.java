@@ -8,12 +8,23 @@ public class Asignatura {
     private int cantidadAlumnos;
 
     public Asignatura(String nombre, String codigo, String carrera, int semestre, int cantidadAlumnos) {
-        this.nombre = nombre;
-        this.codigo = codigo;
-        this.carrera = carrera;
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede estar vacío");
+        }
+        if (semestre <= 0) {
+            throw new IllegalArgumentException("El semestre debe ser mayor a 0");
+        }
+        if (cantidadAlumnos < 0) {
+            throw new IllegalArgumentException("La cantidad de alumnos no puede ser negativa");
+        }
+
+        this.nombre = nombre.trim();
+        this.codigo = codigo != null ? codigo.trim() : "";
+        this.carrera = carrera != null ? carrera.trim() : "";
         this.semestre = semestre;
         this.cantidadAlumnos = cantidadAlumnos;
     }
+
 
     public String getNombre() { return nombre; }
     public String getCodigo() { return codigo; }

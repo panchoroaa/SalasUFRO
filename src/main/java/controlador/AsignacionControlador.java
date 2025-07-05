@@ -1,29 +1,31 @@
 package controlador;
-import modelo.Profesor;
-import modelo.Sala;
-import modelo.Horario;
-import modelo.BloqueHorario;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import modelo.*;
+import persistencia.JsonDataManager;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 public class AsignacionControlador {
-    private final Scanner scanner = new Scanner(System.in);
-    private static final String NOMBRE_ARCHIVO_PROFESORES = "BaseDatosProfesres.json";
+    private final Scanner scanner;
     private final SalaControlador salaControlador;
+    private final ProfesorControlador profesorControlador;
+    private final JsonDataManager jsonDataManager;
+    private List<Reserva> reservas;
 
     public AsignacionControlador() {
+        this.scanner = new Scanner(System.in);
         this.salaControlador = new SalaControlador();
+        this.profesorControlador = new ProfesorControlador();
+        this.jsonDataManager = new JsonDataManager();
+        this.reservas = jsonDataManager.cargarReservas();
     }
 
     public void asignarSalaAProfesor() {
         System.out.println("\n=== Asignación de Sala a Profesor ===");
 
-        List<Profesor> profesores = cargarProfesores();
+        List<Profesor> profesores = profesorControlador.getProfesoresRegistrados();
         List<Sala> salas = salaControlador.getSalasRegistradas();
 
         if (profesores.isEmpty()) {
@@ -36,180 +38,231 @@ public class AsignacionControlador {
             return;
         }
 
+        // Selección del profesor
         Profesor profesorSeleccionado = seleccionarProfesor(profesores);
-        if (profesorSeleccionado == null) {
-            System.out.println("Selección de profesor cancelada o inválida.");
+        if (profesorSeleccionado == null) return;
+
+        // Selección de la asignatura
+        Asignatura asignaturaSeleccionada = seleccionarAsignatura(profesorSeleccionado);
+        if (asignaturaSeleccionada == null) return;
+
+        // Selección del horario
+        Horario horarioSeleccionado = seleccionarHorario();
+        if (horarioSeleccionado == null) return;
+
+        // Verificar si el profesor ya tiene una reserva en ese horario
+        if (profesorTieneReserva(profesorSeleccionado, horarioSeleccionado)) {
+            System.out.println("El profesor ya tiene una asignación en este horario.");
             return;
         }
 
-        int cantidadAlumnosRequerida = 0;
-        String asignaturaSeleccionada = null;
+        // Filtrar salas disponibles según capacidad y horario
+        List<Sala> salasDisponibles = filtrarSalasDisponibles(salas, asignaturaSeleccionada.getCantidadAlumnos(), horarioSeleccionado);
 
-        Map<String, Integer> asignaturasDelProfesor = profesorSeleccionado.getAsignaturasConAlumnos();
-        if (asignaturasDelProfesor.isEmpty()) {
-            System.out.println("El profesor seleccionado no tiene asignaturas registradas. No se puede asignar una sala.");
+        if (salasDisponibles.isEmpty()) {
+            System.out.println("No hay salas disponibles que cumplan con los requisitos.");
             return;
         }
 
-        System.out.println("\nAsignaturas impartidas por " + profesorSeleccionado.getNombre() + ":");
-        List<String> nombresAsignaturas = new ArrayList<>(asignaturasDelProfesor.keySet());
-        for (int i = 0; i < nombresAsignaturas.size(); i++) {
-            String nombreAsignatura = nombresAsignaturas.get(i);
-            System.out.printf("%d. %s (%d alumnos)%n", i + 1, nombreAsignatura, asignaturasDelProfesor.get(nombreAsignatura));
-        }
+        // Selección de la sala
+        Sala salaSeleccionada = seleccionarSala(salasDisponibles);
+        if (salaSeleccionada == null) return;
 
-        while (true) {
-            System.out.print("Seleccione el número de la asignatura a asignar la sala: ");
-            try {
-                int opcionAsignatura = Integer.parseInt(scanner.nextLine());
-                if (opcionAsignatura > 0 && opcionAsignatura <= nombresAsignaturas.size()) {
-                    asignaturaSeleccionada = nombresAsignaturas.get(opcionAsignatura - 1);
-                    cantidadAlumnosRequerida = asignaturasDelProfesor.get(asignaturaSeleccionada);
-                    break;
-                } else {
-                    System.out.println("Opción inválida. Intente de nuevo.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Por favor, ingrese un número.");
-            }
-        }
-
-        System.out.print("Ingrese el día para la asignación (ej. Lunes, Martes): ");
-        String dia = scanner.nextLine();
-
-        BloqueHorario bloqueRequerido = null;
-        try {
-            bloqueRequerido = SelectorBloqueHorario.seleccionarBloque();
-        } catch (IllegalArgumentException e) {
-            System.out.println("Error al seleccionar bloque horario: " + e.getMessage());
-            return;
-        }
-
-        Horario horarioRequerido = new Horario(dia, bloqueRequerido);
-
-        List<Sala> salasDisponiblesYCompatibles = new ArrayList<>();
-        for (Sala sala : salas) {
-            if (sala.getCapacidad() >= cantidadAlumnosRequerida && sala.estaDisponible(horarioRequerido)) {
-                salasDisponiblesYCompatibles.add(sala);
-            }
-        }
-
-        if (salasDisponiblesYCompatibles.isEmpty()) {
-            System.out.println("\nNo se encontró ninguna sala disponible que cumpla con los requisitos (capacidad para " + cantidadAlumnosRequerida + " alumnos y libre en el horario " + horarioRequerido + ").");
-            return;
-        }
-
-        System.out.println("\n--- Salas disponibles y compatibles para " + horarioRequerido + " (Capacidad >= " + cantidadAlumnosRequerida + ") ---");
-        for (int i = 0; i < salasDisponiblesYCompatibles.size(); i++) {
-            Sala currentSala = salasDisponiblesYCompatibles.get(i);
-            System.out.printf("%d. %s (Capacidad: %d, Estado: %s)%n", i + 1, currentSala.getNombre(), currentSala.getCapacidad(), currentSala.getEstado());
-
-            StringBuilder occupiedInfo = new StringBuilder();
-            for (Horario h : currentSala.getHorariosOcupados()) {
-                if (!h.conflictuaCon(horarioRequerido)) {
-                    occupiedInfo.append(String.format("%s (%s); ", h.getDia(), h.getBloque()));
-                }
-            }
-            if (occupiedInfo.length() > 0) {
-                System.out.println("   Otros horarios ocupados: " + occupiedInfo.toString().trim());
-            } else {
-                System.out.println("   No tiene otros horarios ocupados.");
-            }
-        }
-
-        Sala salaAsignada = null;
-        while(true) {
-            System.out.print("Seleccione el número de la sala que desea asignar (0 para cancelar): ");
-            try {
-                int opcionSala = Integer.parseInt(scanner.nextLine());
-                if (opcionSala == 0) {
-                    System.out.println("Asignación cancelada.");
-                    return;
-                }
-                if (opcionSala > 0 && opcionSala <= salasDisponiblesYCompatibles.size()) {
-                    salaAsignada = salasDisponiblesYCompatibles.get(opcionSala - 1);
-                    break;
-                } else {
-                    System.out.println("Opción inválida. Intente de nuevo.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Por favor, ingrese un número.");
-            }
-        }
-        if (salaAsignada != null) {
-            salaAsignada.agregarHorarioOcupado(horarioRequerido);
-            System.out.println("\n--- Asignación Exitosa ---");
-            System.out.printf("La sala '%s' ha sido asignada a '%s' para la asignatura '%s' (%d alumnos) el día '%s' en el bloque '%s'.%n",
-                    salaAsignada.getNombre(), profesorSeleccionado.getNombre(), asignaturaSeleccionada, cantidadAlumnosRequerida, dia, bloqueRequerido);
-
-            salaControlador.guardarTodasLasSalasEnArchivo();
-        } else {
-            System.out.println("\nError inesperado: No se pudo asignar la sala.");
-        }
-    }
-
-    private List<Profesor> cargarProfesores() {
-        List<Profesor> profesores = new ArrayList<>();
-        File archivo = new File(NOMBRE_ARCHIVO_PROFESORES);
-        if (!archivo.exists()) {
-            System.out.println("El archivo de profesores no existe: " + NOMBRE_ARCHIVO_PROFESORES);
-            return profesores;
-        }
-
-        try (Scanner fileScanner = new Scanner(archivo)) {
-            while (fileScanner.hasNextLine()) {
-                String linea = fileScanner.nextLine();
-                try {
-                    String[] partes = linea.split(", ");
-                    String nombre = partes[0].substring("Nombre: ".length());
-                    String departamento = partes[1].substring("Departamento: ".length());
-
-                    Profesor profesor = new Profesor(nombre, departamento);
-
-                    if (partes.length > 2 && partes[2].startsWith("Asignaturas: ")) {
-                        String asignaturasStr = partes[2].substring("Asignaturas: ".length());
-                        if (!asignaturasStr.equalsIgnoreCase("Ninguna")) {
-                            String[] asignaturasConAlumnos = asignaturasStr.split("; ");
-                            for (String asigAlumno : asignaturasConAlumnos) {
-                                int openParen = asigAlumno.indexOf('(');
-                                int closeParen = asigAlumno.indexOf(')');
-                                if (openParen != -1 && closeParen != -1) {
-                                    String nombreAsignatura = asigAlumno.substring(0, openParen).trim();
-                                    int cantidad = Integer.parseInt(asigAlumno.substring(openParen + 1, closeParen).replace(" alumnos", ""));
-                                    profesor.agregarAsignatura(nombreAsignatura, cantidad);
-                                }
-                            }
-                        }
-                    }
-                    profesores.add(profesor);
-                } catch (Exception e) {
-                    System.err.println("Error al parsear línea de profesor: " + linea + " - " + e.getMessage());
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.err.println("Archivo de profesores no encontrado: " + NOMBRE_ARCHIVO_PROFESORES);
-        }
-        return profesores;
+        // Crear y guardar la reserva
+        realizarReserva(profesorSeleccionado, salaSeleccionada, asignaturaSeleccionada, horarioSeleccionado);
     }
 
     private Profesor seleccionarProfesor(List<Profesor> profesores) {
         System.out.println("\nProfesores disponibles:");
         for (int i = 0; i < profesores.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, profesores.get(i).getNombre());
+            Profesor prof = profesores.get(i);
+            System.out.printf("%d. %s (RUT: %s)%n", i + 1, prof.getNombre(), prof.getRut());
         }
 
-        System.out.print("Seleccione el número del profesor: ");
-        int opcion;
         while (true) {
+            System.out.print("\nSeleccione el número del profesor (0 para cancelar): ");
             try {
-                opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = Integer.parseInt(scanner.nextLine().trim());
+                if (opcion == 0) return null;
                 if (opcion > 0 && opcion <= profesores.size()) {
                     return profesores.get(opcion - 1);
-                } else {
-                    System.out.println("Opción inválida. Intente de nuevo.");
                 }
+                System.out.println("Opción inválida. Intente nuevamente.");
             } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Por favor, ingrese un número.");
+                System.out.println("Por favor, ingrese un número válido.");
+            }
+        }
+    }
+
+    private Asignatura seleccionarAsignatura(Profesor profesor) {
+        List<Asignatura> asignaturas = profesor.getAsignaturasImpartidas();
+        if (asignaturas.isEmpty()) {
+            System.out.println("El profesor no tiene asignaturas registradas.");
+            return null;
+        }
+
+        System.out.println("\nAsignaturas del profesor:");
+        for (int i = 0; i < asignaturas.size(); i++) {
+            Asignatura asig = asignaturas.get(i);
+            System.out.printf("%d. %s (%s) - %d alumnos%n",
+                    i + 1, asig.getNombre(), asig.getCodigo(), asig.getCantidadAlumnos());
+        }
+
+        while (true) {
+            System.out.print("\nSeleccione el número de la asignatura (0 para cancelar): ");
+            try {
+                int opcion = Integer.parseInt(scanner.nextLine().trim());
+                if (opcion == 0) return null;
+                if (opcion > 0 && opcion <= asignaturas.size()) {
+                    return asignaturas.get(opcion - 1);
+                }
+                System.out.println("Opción inválida. Intente nuevamente.");
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, ingrese un número válido.");
+            }
+        }
+    }
+
+    private Horario seleccionarHorario() {
+        System.out.println("\nSelección de horario");
+        System.out.print("Ingrese el día (Lunes-Viernes): ");
+        String dia = scanner.nextLine().trim();
+
+        if (!validarDia(dia)) {
+            System.out.println("Día inválido. Debe ser un día de la semana (Lunes-Viernes).");
+            return null;
+        }
+
+        System.out.println("\nBloques disponibles:");
+        for (BloqueHorario bloque : BloqueHorario.values()) {
+            System.out.println(bloque.ordinal() + 1 + ". " + bloque);
+        }
+
+        while (true) {
+            System.out.print("\nSeleccione el número del bloque (0 para cancelar): ");
+            try {
+                int opcion = Integer.parseInt(scanner.nextLine().trim());
+                if (opcion == 0) return null;
+                if (opcion > 0 && opcion <= BloqueHorario.values().length) {
+                    return new Horario(dia, BloqueHorario.values()[opcion - 1]);
+                }
+                System.out.println("Opción inválida. Intente nuevamente.");
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, ingrese un número válido.");
+            }
+        }
+    }
+
+    private boolean validarDia(String dia) {
+        String diaLower = dia.toLowerCase();
+        return diaLower.equals("lunes") || diaLower.equals("martes") ||
+                diaLower.equals("miercoles") || diaLower.equals("jueves") ||
+                diaLower.equals("viernes");
+    }
+
+    private List<Sala> filtrarSalasDisponibles(List<Sala> salas, int capacidadRequerida, Horario horario) {
+        List<Sala> salasDisponibles = new ArrayList<>();
+        for (Sala sala : salas) {
+            if (sala.getCapacidad() >= capacidadRequerida &&
+                    sala.getEstado().equalsIgnoreCase("Disponible") &&
+                    sala.estaDisponible(horario)) {
+                salasDisponibles.add(sala);
+            }
+        }
+        return salasDisponibles;
+    }
+
+    private Sala seleccionarSala(List<Sala> salasDisponibles) {
+        System.out.println("\nSalas disponibles:");
+        for (int i = 0; i < salasDisponibles.size(); i++) {
+            Sala sala = salasDisponibles.get(i);
+            System.out.printf("%d. %s (Capacidad: %d)%n",
+                    i + 1, sala.getNombre(), sala.getCapacidad());
+        }
+
+        while (true) {
+            System.out.print("\nSeleccione el número de la sala (0 para cancelar): ");
+            try {
+                int opcion = Integer.parseInt(scanner.nextLine().trim());
+                if (opcion == 0) return null;
+                if (opcion > 0 && opcion <= salasDisponibles.size()) {
+                    return salasDisponibles.get(opcion - 1);
+                }
+                System.out.println("Opción inválida. Intente nuevamente.");
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, ingrese un número válido.");
+            }
+        }
+    }
+
+    private boolean profesorTieneReserva(Profesor profesor, Horario horario) {
+        for (Reserva reserva : reservas) {
+            if (reserva.getProfesor().equals(profesor) &&
+                    reserva.getHorario().equals(horario)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void realizarReserva(Profesor profesor, Sala sala, Asignatura asignatura, Horario horario) {
+        Reserva nuevaReserva = new Reserva(profesor, sala, asignatura, horario);
+        reservas.add(nuevaReserva);
+        sala.agregarHorarioOcupado(horario);
+
+        jsonDataManager.guardarReservas(reservas);
+        salaControlador.guardarTodasLasSalasEnArchivo();
+
+        System.out.println("\n¡Reserva realizada exitosamente!");
+        System.out.println(nuevaReserva);
+    }
+
+    public void verAsignaciones() {
+        if (reservas.isEmpty()) {
+            System.out.println("\nNo hay asignaciones registradas.");
+            return;
+        }
+
+        System.out.println("\n=== Asignaciones Actuales ===");
+        for (int i = 0; i < reservas.size(); i++) {
+            Reserva reserva = reservas.get(i);
+            System.out.printf("%d. Sala: %s | Profesor: %s | Asignatura: %s | %s, %s%n",
+                    i + 1,
+                    reserva.getSala().getNombre(),
+                    reserva.getProfesor().getNombre(),
+                    reserva.getAsignatura().getNombre(),
+                    reserva.getHorario().getDia(),
+                    reserva.getHorario().getBloque());
+        }
+    }
+
+    public void cancelarAsignacion() {
+        if (reservas.isEmpty()) {
+            System.out.println("\nNo hay asignaciones para cancelar.");
+            return;
+        }
+
+        verAsignaciones();
+
+        while (true) {
+            System.out.print("\nSeleccione el número de la asignación a cancelar (0 para cancelar): ");
+            try {
+                int opcion = Integer.parseInt(scanner.nextLine().trim());
+                if (opcion == 0) return;
+
+                if (opcion > 0 && opcion <= reservas.size()) {
+                    Reserva reservaACancelar = reservas.remove(opcion - 1);
+                    reservaACancelar.getSala().eliminarHorarioOcupado(reservaACancelar.getHorario());
+
+                    jsonDataManager.guardarReservas(reservas);
+                    salaControlador.guardarTodasLasSalasEnArchivo();
+
+                    System.out.println("\nAsignación cancelada exitosamente.");
+                    return;
+                }
+                System.out.println("Opción inválida. Intente nuevamente.");
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, ingrese un número válido.");
             }
         }
     }

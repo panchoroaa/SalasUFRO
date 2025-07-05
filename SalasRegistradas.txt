@@ -1,1 +1,0 @@
-Sala{nombre='e', capacidad=34, estado='Disponible', horariosOcupados=[Día: jueves, Bloque: 18:00 - 19:00; Día: jueves, Bloque: 16:50 - 17:50]}
