@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import modelo.*;
+import modelo.*; // Importa todas las clases de modelo
 
 import java.io.File;
 import java.io.IOException;
@@ -15,13 +15,21 @@ import java.util.List;
 
 public class JsonDataManager {
     private final ObjectMapper objectMapper;
-    private static final String PROFESORES_FILE = "BaseDatosProfesores.json";
-    private static final String SALAS_FILE = "BaseDatosSalas.json";
-    private static final String RESERVAS_FILE = "BaseDatosReservas.json";
+    // Agregamos la carpeta "Datos" aquí
+    private static final String DATA_FOLDER = "Datos"; // Nueva constante para la carpeta
+    private static final String PROFESORES_FILE = DATA_FOLDER + File.separator + "BaseDatosProfesores.json";
+    private static final String SALAS_FILE = DATA_FOLDER + File.separator + "BaseDatosSalas.json";
+    private static final String RESERVAS_FILE = DATA_FOLDER + File.separator + "BaseDatosReservas.json";
 
     public JsonDataManager() {
         objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        // Asegurarse de que la carpeta 'Datos' exista al inicializar
+        File dataDir = new File(DATA_FOLDER);
+        if (!dataDir.exists()) {
+            dataDir.mkdirs(); // Crea el directorio y todos los directorios padre necesarios
+            System.out.println("Carpeta '" + DATA_FOLDER + "' creada.");
+        }
         inicializarArchivosJson();
     }
 
@@ -38,16 +46,11 @@ public class JsonDataManager {
 
     private void inicializarArchivo(String nombreArchivo, String nombreNodo) throws IOException {
         File archivo = new File(nombreArchivo);
-        if (!archivo.exists()) {
+        if (!archivo.exists() || archivo.length() == 0) { // Unificamos la condición
             ObjectNode rootNode = objectMapper.createObjectNode();
             rootNode.putArray(nombreNodo);
-            objectMapper.writeValue(archivo, rootNode);
-            System.out.println("Archivo " + nombreArchivo + " creado exitosamente.");
-        } else if (archivo.length() == 0) {
-            ObjectNode rootNode = objectMapper.createObjectNode();
-            rootNode.putArray(nombreNodo);
-            objectMapper.writeValue(archivo, rootNode);
-            System.out.println("Archivo " + nombreArchivo + " reinicializado.");
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(archivo, rootNode);
+            System.out.println("Archivo " + nombreArchivo + " creado/reinicializado exitosamente.");
         }
     }
 
@@ -78,8 +81,13 @@ public class JsonDataManager {
 
     public List<Profesor> cargarProfesores() {
         List<Profesor> profesores = new ArrayList<>();
+        File file = new File(PROFESORES_FILE);
+        if (!file.exists() || file.length() == 0) {
+            System.out.println("Archivo de profesores no encontrado o vacío: " + PROFESORES_FILE);
+            return profesores;
+        }
         try {
-            JsonNode rootNode = objectMapper.readTree(new File(PROFESORES_FILE));
+            JsonNode rootNode = objectMapper.readTree(file);
             JsonNode profesoresNode = rootNode.get("profesores");
 
             if (profesoresNode != null && profesoresNode.isArray()) {
@@ -91,7 +99,7 @@ public class JsonDataManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error al cargar profesores: " + e.getMessage());
+            System.err.println("Error al cargar profesores desde " + PROFESORES_FILE + ": " + e.getMessage());
         }
         return profesores;
     }
@@ -106,7 +114,7 @@ public class JsonDataManager {
             Profesor profesor = new Profesor(nombre, rut, departamento, id);
 
             JsonNode asignaturasNode = profesorNode.path("asignaturasImpartidas");
-            if (asignaturasNode.isArray()) {
+            if (asignaturasNode != null && asignaturasNode.isArray()) { // Asegurar que es un array y no nulo
                 for (JsonNode asigNode : asignaturasNode) {
                     Asignatura asignatura = crearAsignaturaDesdeJson(asigNode);
                     if (asignatura != null) {
@@ -147,10 +155,10 @@ public class JsonDataManager {
                     profesoresArray.add(profesorNode);
                 }
             }
-
-            objectMapper.writeValue(new File(PROFESORES_FILE), rootNode);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(PROFESORES_FILE), rootNode);
+            System.out.println("Profesores guardados exitosamente en " + PROFESORES_FILE);
         } catch (IOException e) {
-            System.err.println("Error al guardar profesores: " + e.getMessage());
+            System.err.println("Error al guardar profesores en " + PROFESORES_FILE + ": " + e.getMessage());
         }
     }
 
@@ -194,8 +202,13 @@ public class JsonDataManager {
 
     public List<Sala> cargarSalas() {
         List<Sala> salas = new ArrayList<>();
+        File file = new File(SALAS_FILE);
+        if (!file.exists() || file.length() == 0) {
+            System.out.println("Archivo de salas no encontrado o vacío: " + SALAS_FILE);
+            return salas;
+        }
         try {
-            JsonNode rootNode = objectMapper.readTree(new File(SALAS_FILE));
+            JsonNode rootNode = objectMapper.readTree(file);
             JsonNode salasNode = rootNode.get("salas");
 
             if (salasNode != null && salasNode.isArray()) {
@@ -207,7 +220,7 @@ public class JsonDataManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error al cargar salas: " + e.getMessage());
+            System.err.println("Error al cargar salas desde " + SALAS_FILE + ": " + e.getMessage());
         }
         return salas;
     }
@@ -217,10 +230,10 @@ public class JsonDataManager {
             String nombre = salaNode.path("nombre").asText("");
             int capacidad = salaNode.path("capacidad").asInt(0);
             String estado = salaNode.path("estado").asText("Disponible");
-            List<Horario> horarios = new ArrayList<>();
+            List<Horario> horarios = new ArrayList<>(); // Esta lista se llenará con horarios ocupados
 
             JsonNode horariosNode = salaNode.path("horariosOcupados");
-            if (horariosNode.isArray()) {
+            if (horariosNode != null && horariosNode.isArray()) {
                 for (JsonNode horarioNode : horariosNode) {
                     Horario horario = crearHorarioDesdeJson(horarioNode);
                     if (horario != null) {
@@ -259,10 +272,10 @@ public class JsonDataManager {
                     salasArray.add(salaNode);
                 }
             }
-
-            objectMapper.writeValue(new File(SALAS_FILE), rootNode);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(SALAS_FILE), rootNode);
+            System.out.println("Salas guardadas exitosamente en " + SALAS_FILE);
         } catch (IOException e) {
-            System.err.println("Error al guardar salas: " + e.getMessage());
+            System.err.println("Error al guardar salas en " + SALAS_FILE + ": " + e.getMessage());
         }
     }
 
@@ -300,27 +313,42 @@ public class JsonDataManager {
         }
     }
 
-    public List<Reserva> cargarReservas() {
+    // **** MÉTODO CARGAR RESERVAS ACTUALIZADO ****
+    // Este es crucial y DEBE recibir las listas de profesores y salas cargadas previamente
+    public List<Reserva> cargarReservas(List<Profesor> todosProfesores, List<Sala> todasSalas) {
         List<Reserva> reservas = new ArrayList<>();
+        File file = new File(RESERVAS_FILE);
+        if (!file.exists() || file.length() == 0) {
+            System.out.println("Archivo de reservas no encontrado o vacío: " + RESERVAS_FILE);
+            return reservas;
+        }
+
         try {
-            JsonNode rootNode = objectMapper.readTree(new File(RESERVAS_FILE));
+            JsonNode rootNode = objectMapper.readTree(file);
             JsonNode reservasNode = rootNode.get("reservas");
 
             if (reservasNode != null && reservasNode.isArray()) {
                 for (JsonNode reservaNode : reservasNode) {
-                    Reserva reserva = crearReservaDesdeJson(reservaNode);
+                    // Ahora pasamos las listas completas para buscar las referencias correctas
+                    Reserva reserva = crearReservaDesdeJson(reservaNode, todosProfesores, todasSalas);
                     if (reserva != null) {
                         reservas.add(reserva);
+                        // IMPORTANTE: Re-ocupar el horario en la sala para mantener su estado
+                        // Asegurarse de que el objeto Sala dentro de la reserva sea el mismo que en 'todasSalas'
+                        // y así se actualice correctamente.
+                        // La lógica de AsignacionControlador.cancelarAsignacion() se basa en esto.
+                        reserva.getSala().agregarHorarioOcupado(reserva.getHorario());
                     }
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error al cargar reservas: " + e.getMessage());
+            System.err.println("Error al cargar reservas desde " + RESERVAS_FILE + ": " + e.getMessage());
         }
         return reservas;
     }
 
-    private Reserva crearReservaDesdeJson(JsonNode reservaNode) {
+    // Método auxiliar para crear Reserva desde JSON, ahora con las listas de objetos
+    private Reserva crearReservaDesdeJson(JsonNode reservaNode, List<Profesor> todosProfesores, List<Sala> todasSalas) {
         try {
             String rutProfesor = reservaNode.path("rutProfesor").asText();
             String nombreSala = reservaNode.path("nombreSala").asText();
@@ -328,17 +356,43 @@ public class JsonDataManager {
             String dia = reservaNode.path("dia").asText();
             String bloqueStr = reservaNode.path("bloque").asText();
 
-            Profesor profesor = buscarProfesor(rutProfesor);
-            Sala sala = buscarSala(nombreSala);
-            Asignatura asignatura = buscarAsignatura(profesor, codigoAsignatura);
-            BloqueHorario bloque = BloqueHorario.valueOf(bloqueStr);
+            // Buscar la instancia real de Profesor, Sala y Asignatura de las listas cargadas
+            Profesor profesor = todosProfesores.stream()
+                    .filter(p -> p.getRut().equals(rutProfesor))
+                    .findFirst()
+                    .orElse(null);
+            Sala sala = todasSalas.stream()
+                    .filter(s -> s.getNombre().equals(nombreSala))
+                    .findFirst()
+                    .orElse(null);
+
+            Asignatura asignatura = null;
+            if (profesor != null) {
+                asignatura = profesor.getAsignaturasImpartidas().stream()
+                        .filter(a -> a.getCodigo().equals(codigoAsignatura))
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            BloqueHorario bloque = null;
+            try {
+                bloque = BloqueHorario.valueOf(bloqueStr);
+            } catch (IllegalArgumentException e) {
+                System.err.println("Bloque Horario inválido al cargar: " + bloqueStr);
+            }
 
             if (profesor != null && sala != null && asignatura != null && bloque != null) {
                 return new Reserva(profesor, sala, asignatura, new Horario(dia, bloque));
+            } else {
+                System.err.println("Advertencia: No se pudo reconstruir una reserva. Datos faltantes: " +
+                        "Profesor (RUT: " + rutProfesor + "): " + (profesor != null) +
+                        ", Sala (Nombre: " + nombreSala + "): " + (sala != null) +
+                        ", Asignatura (Código: " + codigoAsignatura + "): " + (asignatura != null) +
+                        ", Bloque (Str: " + bloqueStr + "): " + (bloque != null));
             }
             return null;
         } catch (Exception e) {
-            System.err.println("Error al crear reserva desde JSON: " + e.getMessage());
+            System.err.println("Error al crear reserva desde JSON (detalle): " + e.getMessage());
             return null;
         }
     }
@@ -354,21 +408,22 @@ public class JsonDataManager {
                     reservasArray.add(reservaNode);
                 }
             }
-
-            objectMapper.writeValue(new File(RESERVAS_FILE), rootNode);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(RESERVAS_FILE), rootNode);
+            System.out.println("Reservas guardadas exitosamente en " + RESERVAS_FILE);
         } catch (IOException e) {
-            System.err.println("Error al guardar reservas: " + e.getMessage());
+            System.err.println("Error al guardar reservas en " + RESERVAS_FILE + ": " + e.getMessage());
         }
     }
 
     private ObjectNode crearJsonDesdeReserva(Reserva reserva) {
         try {
             ObjectNode reservaNode = objectMapper.createObjectNode();
+            // Guardamos solo los identificadores para evitar la serialización circular y simplificar la estructura
             reservaNode.put("rutProfesor", reserva.getProfesor().getRut());
             reservaNode.put("nombreSala", reserva.getSala().getNombre());
             reservaNode.put("codigoAsignatura", reserva.getAsignatura().getCodigo());
             reservaNode.put("dia", reserva.getHorario().getDia());
-            reservaNode.put("bloque", reserva.getHorario().getBloque().name());
+            reservaNode.put("bloque", reserva.getHorario().getBloque().name()); // Guarda el nombre del enum
             return reservaNode;
         } catch (Exception e) {
             System.err.println("Error al crear JSON desde reserva: " + e.getMessage());
@@ -376,7 +431,13 @@ public class JsonDataManager {
         }
     }
 
+    // Estos métodos buscarProfesor, buscarSala, buscarAsignatura ya no son necesarios aquí
+    // porque cargarReservas ahora recibe las listas completas y realiza la búsqueda en ellas.
+    // Los mantendré comentados o los eliminaría si fuera mi código para evitar confusión.
+    /*
     private Profesor buscarProfesor(String rut) {
+        // Esta implementación cargaría todos los profesores CADA VEZ que se llama
+        // Lo correcto es pasarle la lista de profesores ya cargada en memoria.
         for (Profesor p : cargarProfesores()) {
             if (p.getRut().equals(rut)) return p;
         }
@@ -384,6 +445,7 @@ public class JsonDataManager {
     }
 
     private Sala buscarSala(String nombre) {
+        // Similar, esto es ineficiente y puede llevar a inconsistencias de objetos.
         for (Sala s : cargarSalas()) {
             if (s.getNombre().equals(nombre)) return s;
         }
@@ -398,19 +460,24 @@ public class JsonDataManager {
         }
         return null;
     }
+    */
 
+    // Este método ya no es útil porque cargarReservas necesita los parámetros
+    // Se elimina o modifica si se necesita una verificación más compleja.
     public boolean existenDatos() {
-        try {
-            return !cargarProfesores().isEmpty() ||
-                    !cargarSalas().isEmpty() ||
-                    !cargarReservas().isEmpty();
-        } catch (Exception e) {
-            System.err.println("Error al verificar existencia de datos: " + e.getMessage());
-            return false;
-        }
+        // Implementación revisada para que no intente cargar reservas sin listas
+        File profesoresFile = new File(PROFESORES_FILE);
+        File salasFile = new File(SALAS_FILE);
+        File reservasFile = new File(RESERVAS_FILE);
+
+        return profesoresFile.exists() && profesoresFile.length() > 0 ||
+                salasFile.exists() && salasFile.length() > 0 ||
+                reservasFile.exists() && reservasFile.length() > 0;
     }
 
+
     public void respaldaBaseDatos() {
+        // ... (Tu código existente aquí. No requiere cambios de ruta si se usa DATA_FOLDER)
         try {
             respaldarArchivo(PROFESORES_FILE);
             respaldarArchivo(SALAS_FILE);
@@ -428,15 +495,22 @@ public class JsonDataManager {
             if (backup.exists()) {
                 backup.delete();
             }
-            if (!original.renameTo(backup)) {
-                throw new IOException("No se pudo crear el respaldo de " + nombreArchivo);
+            // Asegurarse de que el directorio del respaldo exista
+            File backupDir = backup.getParentFile();
+            if (backupDir != null && !backupDir.exists()) {
+                backupDir.mkdirs();
             }
-            inicializarArchivo(nombreArchivo,
-                    nombreArchivo.replace("BaseDatos", "").replace(".json", "").toLowerCase());
+            // Usar Files.copy para copiar el archivo de forma más robusta
+            java.nio.file.Files.copy(original.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Respaldo de " + nombreArchivo + " creado.");
+            // No es necesario reinicializar el archivo original aquí, ya que el original sigue existiendo
+        } else {
+            System.out.println("Advertencia: Archivo " + nombreArchivo + " no existe para respaldar.");
         }
     }
 
     public void restaurarRespaldo() {
+        // ... (Tu código existente aquí. No requiere cambios de ruta si se usa DATA_FOLDER)
         try {
             restaurarArchivo(PROFESORES_FILE);
             restaurarArchivo(SALAS_FILE);
@@ -452,11 +526,18 @@ public class JsonDataManager {
         File actual = new File(nombreArchivo);
         if (backup.exists()) {
             if (actual.exists()) {
-                actual.delete();
+                actual.delete(); // Eliminar la versión actual antes de restaurar
             }
-            if (!backup.renameTo(actual)) {
-                throw new IOException("No se pudo restaurar el archivo " + nombreArchivo);
+            // Asegurarse de que el directorio del archivo actual exista
+            File actualDir = actual.getParentFile();
+            if (actualDir != null && !actualDir.exists()) {
+                actualDir.mkdirs();
             }
+            // Usar Files.copy para restaurar el archivo
+            java.nio.file.Files.copy(backup.toPath(), actual.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Archivo " + nombreArchivo + " restaurado desde respaldo.");
+        } else {
+            System.out.println("No se encontró respaldo para " + nombreArchivo);
         }
     }
 }

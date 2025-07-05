@@ -1,27 +1,45 @@
 package vista;
 
+import controlador.AsignacionControlador;
+import controlador.ProfesorControlador;
+import controlador.SalaControlador;
+
 import java.util.Scanner;
 
 public class MenuSalas {
     private final Scanner scanner = new Scanner(System.in);
-    private final SelectorMenu selector = new SelectorMenu();
+    private final ProfesorControlador profesorControlador;
+    private final SalaControlador salaControlador;
+    private final AsignacionControlador asignacionControlador;
+    private final SelectorMenu selector; // La instancia de SelectorMenu
+
+    public MenuSalas() {
+        this.profesorControlador = new ProfesorControlador();
+        this.salaControlador = new SalaControlador();
+        this.asignacionControlador = new AsignacionControlador(profesorControlador, salaControlador);
+        this.selector = new SelectorMenu(profesorControlador, salaControlador, asignacionControlador);
+    }
 
     public void iniciarMenu() {
-        boolean continuar = true;
-        while (continuar) {
+        int opcion;
+        do {
             mostrarMenu();
-            int opcion = obtenerOpcionUsuario();
+            opcion = obtenerOpcionUsuario();
 
-            if (opcion == 6) {
+            if (opcion == 6) { // Opción Salir
                 if (confirmarSalida()) {
                     System.out.println("\n¡Gracias por usar el sistema!");
-                    continuar = false;
+                } else {
+                    opcion = -1; // Si no confirma, volvemos al menú (bucle continúa)
                 }
-            } else if (opcion > 0) {
+            } else if (opcion >= 1 && opcion <= 5) { // Opciones válidas para ejecutar con selector
                 selector.ejecutarOpcion(opcion);
-                esperarEnter();
+                esperarEnter(); // Pausa después de cada operación (excepto salir)
+            } else { // Opciones inválidas (ej. texto, número fuera de rango)
+                System.out.println("Opción inválida. Por favor, ingrese un número entre 1 y 6.");
+                esperarEnter(); // Pausa para que el usuario vea el mensaje
             }
-        }
+        } while (opcion != 6); // El bucle continúa hasta que el usuario elige 6 y confirma
     }
 
     private void mostrarMenu() {
@@ -39,15 +57,9 @@ public class MenuSalas {
     private int obtenerOpcionUsuario() {
         try {
             String input = scanner.nextLine().trim();
-            int opcion = Integer.parseInt(input);
-            if (opcion < 1 || opcion > 6) {
-                System.out.println("Por favor, ingrese un número entre 1 y 6.");
-                return -1;
-            }
-            return opcion;
+            return Integer.parseInt(input);
         } catch (NumberFormatException e) {
-            System.out.println("Por favor, ingrese un número válido.");
-            return -1;
+            return -1; // Retorna -1 para indicar una entrada no numérica o inválida
         }
     }
 
@@ -63,7 +75,18 @@ public class MenuSalas {
     }
 
     private void limpiarPantalla() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        // Intento de limpiar la pantalla, puede no funcionar en todos los IDEs o consolas
+        try {
+            final String os = System.getProperty("os.name");
+            if (os.contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (final Exception e) {
+            // Fallback si no se puede limpiar la pantalla (por ejemplo, en algunos IDEs)
+            for (int i = 0; i < 50; ++i) System.out.println();
+        }
     }
 }
