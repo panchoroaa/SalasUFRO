@@ -1,2 +1,0 @@
-Nombre: pepe, Departamento: dci, Asignaturas: musica 3 (12 alumnos)
-Nombre: er, Departamento: 4, Asignaturas: ingles 4 (12 alumnos)
