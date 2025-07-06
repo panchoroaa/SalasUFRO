@@ -1,52 +1,76 @@
+// vista/MenuSalas.java
 package vista;
 
 import controlador.AsignacionControlador;
 import controlador.ProfesorControlador;
 import controlador.SalaControlador;
-
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MenuSalas {
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
     private final ProfesorControlador profesorControlador;
     private final SalaControlador salaControlador;
     private final AsignacionControlador asignacionControlador;
-    private final SelectorMenu selector; // La instancia de SelectorMenu
+    private final SelectorMenu selector;
 
     public MenuSalas() {
-        this.profesorControlador = new ProfesorControlador();
-        this.salaControlador = new SalaControlador();
-        this.asignacionControlador = new AsignacionControlador(profesorControlador, salaControlador);
-        this.selector = new SelectorMenu(profesorControlador, salaControlador, asignacionControlador);
+        this.scanner = new Scanner(System.in);
+        // La creación e inyección de controladores debe ser la única responsabilidad del constructor
+        // y debe hacerse de forma clara.
+
+        // Paso 1: Crear controladores que no tienen dependencias circulares (o aceptan null temporalmente)
+        this.profesorControlador = new ProfesorControlador(null); // AsignacionControlador se inyectará después
+        this.salaControlador = new SalaControlador(null);     // AsignacionControlador se inyectará después
+
+        // Paso 2: Crear AsignacionControlador, que depende de los anteriores
+        this.asignacionControlador = new AsignacionControlador(
+                this.profesorControlador,
+                this.salaControlador
+        );
+
+        // Paso 3: Completar las dependencias circulares usando setters
+        this.profesorControlador.setAsignacionControlador(this.asignacionControlador);
+        this.salaControlador.setAsignacionControlador(this.asignacionControlador);
+
+        // Paso 4: Crear SelectorMenu, pasándole todas las dependencias necesarias
+        this.selector = new SelectorMenu(
+                this.scanner,
+                this.profesorControlador,
+                this.salaControlador,
+                this.asignacionControlador
+        );
     }
 
     public void iniciarMenu() {
         int opcion;
         do {
-            mostrarMenu();
-            opcion = obtenerOpcionUsuario();
+            mostrarMenuPrincipal();
+            opcion = obtenerOpcionMenuPrincipal(); // Método más específico
 
             if (opcion == 6) { // Opción Salir
-                if (confirmarSalida()) {
-                    System.out.println("\n¡Gracias por usar el sistema!");
+                if (solicitarConfirmacionSalida()) { // Método más descriptivo
+                    mostrarMensajeDespedida();
                 } else {
-                    opcion = -1; // Si no confirma, volvemos al menú (bucle continúa)
+                    opcion = -1; // Volver al menú
                 }
-            } else if (opcion >= 1 && opcion <= 5) { // Opciones válidas para ejecutar con selector
+            } else if (opcion >= 1 && opcion <= 5) {
                 selector.ejecutarOpcion(opcion);
-                esperarEnter(); // Pausa después de cada operación (excepto salir)
-            } else { // Opciones inválidas (ej. texto, número fuera de rango)
-                System.out.println("Opción inválida. Por favor, ingrese un número entre 1 y 6.");
-                esperarEnter(); // Pausa para que el usuario vea el mensaje
+                pausarYContinuar(); // Método más genérico para "esperar enter"
+            } else {
+                mostrarMensajeErrorOpcionInvalida();
+                pausarYContinuar();
             }
-        } while (opcion != 6); // El bucle continúa hasta que el usuario elige 6 y confirma
+        } while (opcion != 6);
+        cerrarRecursos(); // Cerrar el scanner y otros recursos si los hubiera
     }
 
-    private void mostrarMenu() {
+    // Métodos atómicos para la UI del menú principal
+    private void mostrarMenuPrincipal() {
         limpiarPantalla();
         System.out.println("\n=== Sistema de Asignación de Salas ===");
-        System.out.println("1. Registrar profesor");
-        System.out.println("2. Registrar sala");
+        System.out.println("1. Gestión de Profesores");
+        System.out.println("2. Gestión de Salas");
         System.out.println("3. Asignar sala a profesor");
         System.out.println("4. Modificar/cancelar asignación");
         System.out.println("5. Ver asignaciones");
@@ -54,28 +78,38 @@ public class MenuSalas {
         System.out.print("Seleccione una opción: ");
     }
 
-    private int obtenerOpcionUsuario() {
-        try {
-            String input = scanner.nextLine().trim();
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            return -1; // Retorna -1 para indicar una entrada no numérica o inválida
+    private int obtenerOpcionMenuPrincipal() {
+        while (true) {
+            try {
+                String input = scanner.nextLine().trim();
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Por favor, ingrese un número.");
+                System.out.print("Seleccione una opción: "); // Volver a pedir
+            }
         }
     }
 
-    private boolean confirmarSalida() {
+    private boolean solicitarConfirmacionSalida() {
         System.out.print("\n¿Está seguro que desea salir? (S/N): ");
         String respuesta = scanner.nextLine().trim().toUpperCase();
         return respuesta.equals("S");
     }
 
-    private void esperarEnter() {
+    private void mostrarMensajeDespedida() {
+        System.out.println("\n¡Gracias por usar el sistema!");
+    }
+
+    private void mostrarMensajeErrorOpcionInvalida() {
+        System.out.println("Opción inválida. Por favor, ingrese un número entre 1 y 6.");
+    }
+
+    private void pausarYContinuar() {
         System.out.println("\nPresione ENTER para continuar...");
         scanner.nextLine();
     }
 
     private void limpiarPantalla() {
-        // Intento de limpiar la pantalla, puede no funcionar en todos los IDEs o consolas
         try {
             final String os = System.getProperty("os.name");
             if (os.contains("Windows")) {
@@ -85,8 +119,12 @@ public class MenuSalas {
                 System.out.flush();
             }
         } catch (final Exception e) {
-            // Fallback si no se puede limpiar la pantalla (por ejemplo, en algunos IDEs)
+            // Fallback si no se puede limpiar la pantalla
             for (int i = 0; i < 50; ++i) System.out.println();
         }
+    }
+
+    private void cerrarRecursos() {
+        scanner.close();
     }
 }

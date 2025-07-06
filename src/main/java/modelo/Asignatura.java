@@ -1,4 +1,7 @@
+// modelo/Asignatura.java
 package modelo;
+
+import java.util.Objects; // Necesario para Objects.hash
 
 public class Asignatura {
     private String nombre;
@@ -17,14 +20,12 @@ public class Asignatura {
         if (cantidadAlumnos < 0) {
             throw new IllegalArgumentException("La cantidad de alumnos no puede ser negativa");
         }
-
         this.nombre = nombre.trim();
         this.codigo = codigo != null ? codigo.trim() : "";
         this.carrera = carrera != null ? carrera.trim() : "";
         this.semestre = semestre;
         this.cantidadAlumnos = cantidadAlumnos;
     }
-
 
     public String getNombre() { return nombre; }
     public String getCodigo() { return codigo; }
@@ -36,5 +37,19 @@ public class Asignatura {
     public String toString() {
         return String.format("%s (%s) - Carrera: %s, Semestre: %d, Alumnos: %d",
                 nombre, codigo, carrera, semestre, cantidadAlumnos);
+    }
+
+    // Nuevos métodos equals y hashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Asignatura that = (Asignatura) o;
+        return codigo.equalsIgnoreCase(that.codigo); // Las asignaturas son iguales si tienen el mismo código
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(codigo.toLowerCase()); // Hash basado en el código en minúsculas
     }
 }
