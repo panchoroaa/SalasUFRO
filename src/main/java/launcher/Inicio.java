@@ -5,7 +5,7 @@ import vista.MenuSalas;
 public class Inicio {
     public static void main(String[] args) {
         MenuSalas menu = new MenuSalas();
-        menu.iniciarMenu();
+        menu.iniciar();
         System.out.println("Ejecutando main.");
     }
 }

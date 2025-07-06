@@ -1,127 +1,51 @@
 package controlador;
 
 import modelo.BloqueHorario;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import modelo.Profesor;
+import modelo.Sala;
+import modelo.Horario;
+import modelo.GestionSala;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CheckReserva {
+    private final ProfesorControlador profesorControlador;
+    private final SalaControlador salaControlador;
+    private final AsignacionControlador asignacionControlador;
 
-
-    /**
-     * obtenerIdProfesor
-     * <p>
-     * """""FALTA PONERR SI EL ARCHIVO ESTA O NO""""""""""""""""
-     * <p>
-     * Busca en el archivo BaseDeDatosProfesores y rut hasta que coincide la entrada o hay una linea blanca
-     * si encuenntra el rut retorna la ID
-     * Si No encuentra el rut retorna null y lanza una exeption
-     *
-     * @param rut
-     * @return
-     */
-    public String obtenerIdProfesor(String rut) throws RutNotFoundException {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(new File("BaseDatosProfesores.json"));
-            JsonNode profesoresNode = rootNode.get("profesores");
-
-            if (profesoresNode.isArray()) {
-                for (JsonNode profesor : profesoresNode) {
-                    if (profesor.get("rut").asText().equals(rut)) {
-                        return profesor.get("ID").asText();
-                    }
-                }
-            }
-
-            throw new RutNotFoundException("El RUT " + rut + " no se encuentra en la base de datos");
-        } catch (IOException e) {
-            throw new RuntimeException("Error al leer el archivo de la base de datos", e);
-        }
+    public CheckReserva(ProfesorControlador profesorControlador,
+                        SalaControlador salaControlador,
+                        AsignacionControlador asignacionControlador) {
+        this.profesorControlador = profesorControlador;
+        this.salaControlador = salaControlador;
+        this.asignacionControlador = asignacionControlador;
     }
 
-    // Clase para la excepción personalizada
-    public class RutNotFoundException extends Exception {
-        public RutNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    public boolean existeProfesor(String rut) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader("BaseDatosPrfesores"));
-            String linea;
-
-            while ((linea = reader.readLine()) != null) {
-                String[] datos = linea.split(";");
-
-                if (datos.length == 2 && datos[0].trim().equals(rut.trim())) {
-                    reader.close();
-                    return true;
-                }
-            }
-            reader.close();
-            return false;
-        } catch (IOException e) {
-            System.out.println("Error al leer el archivo: " + e.getMessage());
+    public boolean salaEstaDisponible(Sala sala, String dia, BloqueHorario bloque) {
+        if (sala == null || dia == null || bloque == null) {
             return false;
         }
-    }
-    public boolean tieneRamo(String ID, String codigoRamo) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(new File("BaseDatosRamos.json"));
 
-            // Verificar si existe el ID del profesor
-            if (!rootNode.has(ID)) {
-                return false;
-            }
-
-            // Obtener el array de ramos para ese ID
-            JsonNode ramosNode = rootNode.get(ID).get("ramos");
-
-            // Verificar si el código del ramo existe en el array
-            if (ramosNode.isArray()) {
-                for (JsonNode ramo : ramosNode) {
-                    if (ramo.asText().equals(codigoRamo)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        } catch (IOException e) {
-            System.out.println("Error al leer el archivo JSON: " + e.getMessage());
+        GestionSala gestionSala = salaControlador.getGestionSalaPara(sala);
+        if (gestionSala == null) {
+            System.err.println("Error interno: No se encontró gestión para la sala " + sala.getNombre());
             return false;
         }
+
+        Horario nuevoHorario = new Horario(dia, bloque);
+        return gestionSala.estaDisponible(nuevoHorario);
     }
-    public String reservaLibre(String nombreSala, BloqueHorario bloque) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(new File("BaseDatosReservas.json"));
 
-            // Verificar si existe la sala
-            if (!rootNode.has(nombreSala)) {
-                return "Disponible"; // Si la sala no está en el registro, está disponible
-            }
-
-            // Obtener las reservas de la sala
-            JsonNode salaNode = rootNode.get(nombreSala);
-
-            // Verificar el estado para el bloque específico
-            if (salaNode.has(bloque.toString())) {
-                return salaNode.get(bloque.toString()).asText();
-            }
-
-            return "Disponible"; // Si no hay registro para ese bloque, está disponible
-
-        } catch (IOException e) {
-            System.out.println("Error al leer el archivo de reservas: " + e.getMessage());
-            return "Error al verificar disponibilidad";
+    public boolean profesorTieneConflictoHorario(Profesor profesor, String dia, BloqueHorario bloque) {
+        if (profesor == null || dia == null || bloque == null) {
+            return false;
         }
-    }
 
+        Horario horarioConflicto = new Horario(dia, bloque);
+
+        return asignacionControlador.getReservas().stream()
+                .anyMatch(reserva -> reserva.getProfesor() != null && reserva.getProfesor().equals(profesor) &&
+                        reserva.getHorario() != null && reserva.getHorario().equals(horarioConflicto));
+    }
 }

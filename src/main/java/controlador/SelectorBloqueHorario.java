@@ -1,58 +1,39 @@
 package controlador;
 
-import java.util.Scanner;
 import modelo.BloqueHorario;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 public class SelectorBloqueHorario {
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static BloqueHorario seleccionarBloqueConOpcionCancelar() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Seleccione un bloque horario (0 para cancelar):");
-
+        System.out.println("\n--- Selección de Bloque Horario ---");
         BloqueHorario[] bloques = BloqueHorario.values();
         for (int i = 0; i < bloques.length; i++) {
-            System.out.printf("%d. %s%n", i + 1, bloques[i]);
+            System.out.printf("%d. %s%n", i + 1, bloques[i].toString());
         }
+        System.out.println("0. Cancelar");
 
+        int opcion;
         while (true) {
-            System.out.print("Opción: ");
-            String input = scanner.nextLine().trim();
-
-            if (input.equals("0")) {
-                return null; // Usuario canceló la selección
-            }
-
+            System.out.print("Seleccione un bloque horario: ");
             try {
-                int opcion = Integer.parseInt(input);
-                if (opcion >= 1 && opcion <= bloques.length) {
-                    return bloques[opcion - 1];
+                opcion = scanner.nextInt();
+                scanner.nextLine(); // Consumir el salto de línea
+
+                if (opcion == 0) {
+                    return null; // El usuario eligió cancelar
                 }
-                System.out.println("Opción fuera de rango. Intente nuevamente.");
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, ingrese un número válido.");
+                if (opcion > 0 && opcion <= bloques.length) {
+                    return bloques[opcion - 1];
+                } else {
+                    System.out.println("Opción no válida. Por favor, ingrese un número entre 0 y " + bloques.length + ".");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Entrada no válida. Por favor, ingrese un número.");
+                scanner.nextLine(); // Consumir la entrada inválida
             }
         }
-    }
-
-    // Mantener el método original si es necesario
-    public static BloqueHorario seleccionarBloque() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Seleccione un bloque horario:");
-
-        BloqueHorario[] bloques = BloqueHorario.values();
-        for (int i = 0; i < bloques.length; i++) {
-            System.out.printf("%d. %s%n", i + 1, bloques[i]);
-        }
-
-        System.out.print("Opción: ");
-        int opcion = Integer.parseInt(scanner.nextLine());
-
-        if (opcion < 1 || opcion > bloques.length) {
-            throw new IllegalArgumentException("Opción fuera de rango.");
-        }
-
-        return bloques[opcion - 1];
     }
 }

@@ -1,25 +1,35 @@
-// modelo/GestionSala.java
 package modelo;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class GestionSala {
-    private final Sala sala; // La sala informativa que esta gestión complementa
-    private final GestionHorarios gestionHorarios;
+public class GestionSala implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private Sala sala;
     private EstadoSala estado;
+    private List<Horario> horariosOcupados;
 
     public GestionSala(Sala sala) {
-        if (sala == null) {
-            throw new IllegalArgumentException("La sala asociada no puede ser nula.");
-        }
         this.sala = sala;
-        this.gestionHorarios = new GestionHorarios(); // Gestiona sus propios horarios
-        this.estado = EstadoSala.DISPONIBLE; // Estado inicial por defecto
+        this.estado = EstadoSala.DISPONIBLE;
+        this.horariosOcupados = new ArrayList<>();
+    }
+
+    public GestionSala() {
+        this.horariosOcupados = new ArrayList<>();
+        this.estado = EstadoSala.DISPONIBLE; // Asegurar estado por defecto si se carga sin él
     }
 
     public Sala getSala() {
         return sala;
+    }
+
+    // Importante: Setter para Jackson cuando deserializa
+    public void setSala(Sala sala) {
+        this.sala = sala;
     }
 
     public EstadoSala getEstado() {
@@ -27,32 +37,51 @@ public class GestionSala {
     }
 
     public void setEstado(EstadoSala estado) {
-        if (estado == null) {
-            throw new IllegalArgumentException("El estado no puede ser nulo.");
-        }
         this.estado = estado;
     }
 
+    public List<Horario> getHorariosOcupados() {
+        return horariosOcupados;
+    }
+
+    // Importante: Setter para Jackson cuando deserializa
+    public void setHorariosOcupados(List<Horario> horariosOcupados) {
+        this.horariosOcupados = new ArrayList<>(horariosOcupados);
+    }
+
     public boolean estaDisponible(Horario horario) {
-        return estado == EstadoSala.DISPONIBLE && gestionHorarios.estaDisponible(horario);
+        if (this.estado != EstadoSala.DISPONIBLE) {
+            return false;
+        }
+        return horariosOcupados.stream().noneMatch(h -> h.equals(horario));
     }
 
     public void agregarHorarioOcupado(Horario horario) {
-        if (estado != EstadoSala.DISPONIBLE) {
-            throw new IllegalStateException("No se pueden agregar horarios a una sala en estado " + estado.toString().toLowerCase() + ".");
+        if (!estaDisponible(horario)) {
+            // Usa horario.getBloque().toString() aquí
+            throw new IllegalStateException("La sala ya está ocupada o no disponible en el horario " + horario.getDia() + " " + horario.getBloque().toString());
         }
-        if (!gestionHorarios.estaDisponible(horario)) {
-            throw new IllegalStateException("El horario " + horario + " ya está ocupado para la sala " + sala.getNombre() + ".");
-        }
-        gestionHorarios.agregarHorario(horario);
+        horariosOcupados.add(horario);
     }
 
-    public void eliminarHorarioOcupado(Horario horario) {
-        gestionHorarios.eliminarHorario(horario);
+    public void removerHorarioOcupado(Horario horario) {
+        if (!horariosOcupados.remove(horario)) {
+            // Usa horario.getBloque().toString() aquí
+            throw new IllegalArgumentException("El horario " + horario.getDia() + " " + horario.getBloque().toString() + " no estaba ocupado en esta sala.");
+        }
     }
 
-    public List<Horario> getHorariosOcupados() {
-        return gestionHorarios.getHorariosOcupados();
+    public boolean tieneHorarioOcupado(Horario horario) {
+        return horariosOcupados.contains(horario);
+    }
+
+    @Override
+    public String toString() {
+        return "GestionSala{" +
+                "sala=" + (sala != null ? sala.getNombre() : "N/A") +
+                ", estado=" + estado +
+                ", horariosOcupados=" + horariosOcupados.size() +
+                '}';
     }
 
     @Override
@@ -60,7 +89,7 @@ public class GestionSala {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GestionSala that = (GestionSala) o;
-        return Objects.equals(sala, that.sala); // Dos GestionSala son iguales si gestionan la misma Sala informativa
+        return sala.equals(that.sala);
     }
 
     @Override

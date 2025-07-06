@@ -1,4 +1,3 @@
-// vista/SelectorMenu.java
 package vista;
 
 import controlador.AsignacionControlador;
@@ -10,17 +9,19 @@ import modelo.BloqueHorario;
 import modelo.Profesor;
 import modelo.Sala;
 import modelo.EstadoSala;
-import modelo.RutNotFoundException;
+import controlador.SelectorBloqueHorario; // Asumiendo que esta clase sigue existiendo
+
 import java.util.List;
 import java.util.Scanner;
 import java.util.InputMismatchException;
+import java.util.stream.Collectors;
 
 public class SelectorMenu {
     private final Scanner scanner;
     private final ProfesorControlador profesorControlador;
     private final SalaControlador salaControlador;
     private final AsignacionControlador asignacionControlador;
-    private final CheckReserva checkReserva;
+    private final CheckReserva checkReserva; // Asegúrate de que esta instancia se pasa correctamente
 
     public SelectorMenu(Scanner scanner,
                         ProfesorControlador profesorControlador,
@@ -115,7 +116,8 @@ public class SelectorMenu {
         String rut = solicitarRutProfesor();
         if (rut == null) { mostrarCancelacionOperacion("Registro de profesor"); return; }
 
-        if (checkReserva.existeProfesor(rut)) {
+        // CORRECCIÓN: Usar buscarProfesorPorRut
+        if (profesorControlador.buscarProfesorPorRut(rut) != null) {
             System.out.println("Error: Ya existe un profesor con este RUT. Ingrese uno diferente.");
             return;
         }
@@ -142,7 +144,8 @@ public class SelectorMenu {
         String rut = solicitarRutProfesor();
         if (rut == null) { mostrarCancelacionOperacion("Actualización de profesor"); return; }
 
-        Profesor profesorAActualizar = checkReserva.obtenerProfesorPorRut(rut);
+        // CORRECCIÓN: Usar buscarProfesorPorRut
+        Profesor profesorAActualizar = profesorControlador.buscarProfesorPorRut(rut);
         if (profesorAActualizar == null) {
             System.out.println("Error: No se encontró un profesor con el RUT especificado.");
             return;
@@ -174,13 +177,15 @@ public class SelectorMenu {
         String rutAEliminar = solicitarRutProfesor();
         if (rutAEliminar == null) { mostrarCancelacionOperacion("Eliminación de profesor"); return; }
 
-        Profesor profesorAEliminar = checkReserva.obtenerProfesorPorRut(rutAEliminar);
+        // CORRECCIÓN: Usar buscarProfesorPorRut
+        Profesor profesorAEliminar = profesorControlador.buscarProfesorPorRut(rutAEliminar);
         if (profesorAEliminar == null) {
             System.out.println("Error: No se encontró un profesor con el RUT especificado.");
             return;
         }
 
-        if (checkReserva.profesorTieneReservasActivas(profesorAEliminar)) {
+        // CORRECCIÓN: Usar asignacionControlador
+        if (asignacionControlador.profesorTieneReservasActivas(profesorAEliminar)) {
             mostrarMensajeError("Error: No se puede eliminar el profesor porque tiene asignaciones activas.");
             return;
         }
@@ -204,7 +209,7 @@ public class SelectorMenu {
         String rut = solicitarRutProfesor();
         if (rut == null) { mostrarCancelacionOperacion("Asignación de asignatura"); return; }
 
-        Profesor profesor = checkReserva.obtenerProfesorPorRut(rut);
+        Profesor profesor = profesorControlador.buscarProfesorPorRut(rut);
         if (profesor == null) {
             System.out.println("Error: No se encontró un profesor con el RUT especificado.");
             return;
@@ -255,7 +260,8 @@ public class SelectorMenu {
         String nombre = solicitarNombreSala();
         if (nombre == null) { mostrarCancelacionOperacion("Registro de sala"); return; }
 
-        if (checkReserva.existeSala(nombre)) {
+        // CORRECCIÓN: Usar buscarSalaPorNombre
+        if (salaControlador.buscarSalaPorNombre(nombre) != null) {
             System.out.println("Error: Ya existe una sala con este nombre. Ingrese uno diferente.");
             return;
         }
@@ -274,7 +280,7 @@ public class SelectorMenu {
     private void actualizarEstadoSalaFlow() {
         System.out.println("\n=== Actualizar Estado de Sala ===");
         salaControlador.listarSalas();
-        if (salaControlador.getSalasRegistradas().isEmpty()) {
+        if (salaControlador.getSalasRegistradasPuras().isEmpty()) { // Usar getSalasRegistradasPuras
             mostrarNoHayElementosPara("salas para actualizar su estado");
             return;
         }
@@ -282,7 +288,8 @@ public class SelectorMenu {
         String nombreSala = solicitarNombreSala();
         if (nombreSala == null) { mostrarCancelacionOperacion("Actualización de estado de sala"); return; }
 
-        Sala salaAActualizar = checkReserva.obtenerSalaPorNombre(nombreSala);
+        // CORRECCIÓN: Usar buscarSalaPorNombre
+        Sala salaAActualizar = salaControlador.buscarSalaPorNombre(nombreSala);
         if (salaAActualizar == null) {
             System.out.println("Error: No se encontró una sala con el nombre especificado.");
             return;
@@ -298,9 +305,13 @@ public class SelectorMenu {
         EstadoSala nuevoEstado = null;
         switch (opcionEstado) {
             case 1: nuevoEstado = EstadoSala.DISPONIBLE; break;
-            case 2: nuevoEstado = EstadoSala.EN_MANTENIMIENTO; break;
+            case 2: nuevoEstado = EstadoSala.MANTENIMIENTO; break;
             case 0: mostrarCancelacionOperacion("Actualización de estado de sala"); return;
             default: System.out.println("Opción de estado no válida."); return;
+        }
+        if (nuevoEstado == null) {
+            System.out.println("Selección de estado no válida. Intente de nuevo.");
+            return;
         }
 
         boolean actualizado = salaControlador.actualizarEstadoSala(salaAActualizar, nuevoEstado);
@@ -314,7 +325,7 @@ public class SelectorMenu {
     private void eliminarSalaFlow() {
         System.out.println("\n=== Eliminar Sala ===");
         salaControlador.listarSalas();
-        if (salaControlador.getSalasRegistradas().isEmpty()) {
+        if (salaControlador.getSalasRegistradasPuras().isEmpty()) { // Usar getSalasRegistradasPuras
             mostrarNoHayElementosPara("salas para eliminar");
             return;
         }
@@ -322,13 +333,15 @@ public class SelectorMenu {
         String nombreAEliminar = solicitarNombreSala();
         if (nombreAEliminar == null) { mostrarCancelacionOperacion("Eliminación de sala"); return; }
 
-        Sala salaAEliminar = checkReserva.obtenerSalaPorNombre(nombreAEliminar);
+        // CORRECCIÓN: Usar buscarSalaPorNombre
+        Sala salaAEliminar = salaControlador.buscarSalaPorNombre(nombreAEliminar);
         if (salaAEliminar == null) {
             System.out.println("Error: No se encontró una sala con el nombre especificado.");
             return;
         }
 
-        if (checkReserva.salaTieneReservasActivas(salaAEliminar)) {
+        // CORRECCIÓN: Usar asignacionControlador
+        if (asignacionControlador.salaTieneReservasActivas(salaAEliminar)) {
             mostrarMensajeError("Error: No se puede eliminar la sala porque tiene asignaciones activas.");
             return;
         }
@@ -354,26 +367,29 @@ public class SelectorMenu {
         Asignatura asignatura = seleccionarAsignaturaDeLista(asignaturasProfesor, "asignar sala");
         if (asignatura == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
 
-        List<Sala> salas = salaControlador.getSalasRegistradas();
+        List<Sala> salas = salaControlador.getSalasRegistradasPuras(); // Usar getSalasRegistradasPuras
         if (salas.isEmpty()) { mostrarNoHayElementosPara("salas para asignar"); return; }
         List<Sala> salasConCapacidad = salas.stream()
                 .filter(s -> s.getCapacidad() >= asignatura.getCantidadAlumnos())
-                .toList();
+                .collect(Collectors.toList());
+
         if (salasConCapacidad.isEmpty()) { System.out.println("No hay salas disponibles con capacidad suficiente para " + asignatura.getCantidadAlumnos() + " alumnos."); return; }
         Sala sala = seleccionarSalaDeLista(salasConCapacidad, "asignar");
         if (sala == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
 
         String dia = solicitarDiaSemana();
         if (dia == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-        BloqueHorario bloque = solicitarBloqueHorario();
+        BloqueHorario bloque = SelectorBloqueHorario.seleccionarBloqueConOpcionCancelar();
         if (bloque == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
 
+        // CORRECCIÓN: Usar bloque.toString()
         if (!checkReserva.salaEstaDisponible(sala, dia, bloque)) {
-            mostrarMensajeError("Error: La sala " + sala.getNombre() + " no está disponible en el horario " + dia + " " + bloque + " o está en mantenimiento.");
+            mostrarMensajeError("Error: La sala " + sala.getNombre() + " no está disponible en el horario " + dia + " " + bloque.toString() + " o está en mantenimiento.");
             return;
         }
+        // CORRECCIÓN: Usar bloque.toString()
         if (checkReserva.profesorTieneConflictoHorario(profesor, dia, bloque)) {
-            mostrarMensajeError("Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en el horario " + dia + " " + bloque + ".");
+            mostrarMensajeError("Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en el horario " + dia + " " + bloque.toString() + ".");
             return;
         }
 
@@ -401,14 +417,17 @@ public class SelectorMenu {
     }
 
     private int leerOpcion() {
-        while (!scanner.hasNextInt()) {
-            System.out.println("Entrada no válida. Por favor, ingrese un número.");
-            scanner.next();
-            System.out.print("Seleccione una opción: ");
+        while (true) {
+            try {
+                System.out.print("Seleccione una opción: ");
+                int opcion = scanner.nextInt();
+                scanner.nextLine();
+                return opcion;
+            } catch (InputMismatchException e) {
+                System.out.println("Entrada no válida. Por favor, ingrese un número.");
+                scanner.nextLine();
+            }
         }
-        int opcion = scanner.nextInt();
-        scanner.nextLine();
-        return opcion;
     }
 
     private String solicitarNombreProfesor() { return solicitarEntrada("Ingrese el nombre del profesor (0 para cancelar): "); }
@@ -433,23 +452,11 @@ public class SelectorMenu {
             System.out.println("Ingrese el día de la semana (LUNES, MARTES, etc. o 0 para cancelar):");
             String dia = scanner.nextLine().trim().toUpperCase();
             if (dia.equals("0")) return null;
-            if (!dia.isEmpty()) return dia;
-            System.out.println("Día no válido.");
+            if (List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO").contains(dia)) {
+                return dia;
+            }
+            System.out.println("Día no válido. Por favor, ingrese un día de la semana válido.");
         }
-    }
-    private BloqueHorario solicitarBloqueHorario() {
-        System.out.println("Seleccione el bloque horario:");
-        for (int i = 0; i < BloqueHorario.values().length; i++) {
-            System.out.printf("%d. %s%n", i + 1, BloqueHorario.values()[i].getDescripcion());
-        }
-        System.out.println("0. Cancelar");
-        int opcion = leerOpcion();
-        if (opcion == 0) return null;
-        if (opcion > 0 && opcion <= BloqueHorario.values().length) {
-            return BloqueHorario.values()[opcion - 1];
-        }
-        System.out.println("Opción de bloque horario no válida.");
-        return null;
     }
 
     private String solicitarEntrada(String mensaje) {
@@ -462,7 +469,7 @@ public class SelectorMenu {
     }
 
     private <T> T seleccionarProfesorDeLista(List<T> lista, String accion) {
-        profesorControlador.listarProfesores();
+        profesorControlador.listarProfesores(); // Mostrar la lista completa antes de pedir selección
         return seleccionarElementoDeLista(lista, "profesor para " + accion);
     }
 
@@ -479,7 +486,7 @@ public class SelectorMenu {
     }
 
     private <T> T seleccionarSalaDeLista(List<T> lista, String accion) {
-        salaControlador.listarSalas();
+        salaControlador.listarSalas(); // Mostrar la lista completa antes de pedir selección
         return seleccionarElementoDeLista(lista, "sala para " + accion);
     }
 

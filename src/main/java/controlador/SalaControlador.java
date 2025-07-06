@@ -1,26 +1,26 @@
-// controlador/SalaControlador.java
 package controlador;
 
-import modelo.Sala;
 import modelo.GestionSala;
+import modelo.Sala;
 import modelo.EstadoSala;
 import persistencia.JsonDataManager;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SalaControlador {
     private final JsonDataManager jsonDataManager;
     private List<GestionSala> gestionesSalas;
-    private AsignacionControlador asignacionControlador;
+    private AsignacionControlador asignacionControlador; // Se inyecta después
 
-    public SalaControlador(AsignacionControlador asignacionControlador) {
-        this.jsonDataManager = new JsonDataManager();
-        this.gestionesSalas = jsonDataManager.cargarGestionesSalas();
+    public SalaControlador(JsonDataManager jsonDataManager) {
+        this.jsonDataManager = Objects.requireNonNull(jsonDataManager, "JsonDataManager no puede ser nulo.");
+        this.gestionesSalas = jsonDataManager.cargarGestionesSalas(); // Ahora carga directamente GestionSala
         if (this.gestionesSalas == null) {
             this.gestionesSalas = new ArrayList<>();
         }
-        this.asignacionControlador = asignacionControlador;
     }
 
     public void setAsignacionControlador(AsignacionControlador asignacionControlador) {
@@ -28,53 +28,65 @@ public class SalaControlador {
     }
 
     public Sala crearSala(String nombre, int capacidad) {
-        try {
-            Sala nuevaSalaInformativa = new Sala(nombre, capacidad);
-            GestionSala nuevaGestionSala = new GestionSala(nuevaSalaInformativa);
-            gestionesSalas.add(nuevaGestionSala);
-            jsonDataManager.guardarGestionesSalas(gestionesSalas);
-            return nuevaSalaInformativa;
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error al crear sala: " + e.getMessage());
+        if (buscarSalaPorNombre(nombre) != null) {
+            System.err.println("Error: Ya existe una sala con este nombre.");
             return null;
         }
+        Sala nuevaSala = new Sala(nombre, capacidad);
+        GestionSala nuevaGestionSala = new GestionSala(nuevaSala);
+        gestionesSalas.add(nuevaGestionSala);
+        jsonDataManager.guardarGestionesSalas(gestionesSalas); // Guarda lista de GestionSala
+        return nuevaSala;
     }
 
-    public boolean eliminarSala(String nombre) {
-        GestionSala gestionSalaAEliminar = gestionesSalas.stream()
-                .filter(gs -> gs.getSala().getNombre().equalsIgnoreCase(nombre))
+    public Sala buscarSalaPorNombre(String nombre) {
+        return gestionesSalas.stream()
+                .map(GestionSala::getSala)
+                .filter(s -> s.getNombre().equalsIgnoreCase(nombre))
                 .findFirst()
                 .orElse(null);
-        if (gestionSalaAEliminar == null) {
-            return false;
-        }
-        gestionesSalas.remove(gestionSalaAEliminar);
-        jsonDataManager.guardarGestionesSalas(gestionesSalas);
-        return true;
+    }
+
+    public GestionSala getGestionSalaPara(Sala sala) {
+        if (sala == null) return null;
+        return gestionesSalas.stream()
+                .filter(gs -> gs.getSala().equals(sala))
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean actualizarEstadoSala(Sala sala, EstadoSala nuevoEstado) {
-        if (sala == null || nuevoEstado == null) return false;
         GestionSala gestionSala = getGestionSalaPara(sala);
-        if (gestionSala == null) return false;
-
-        if (gestionSala.getEstado() != nuevoEstado) {
-            gestionSala.setEstado(nuevoEstado);
-            jsonDataManager.guardarGestionesSalas(gestionesSalas);
-            return true;
+        if (gestionSala == null) {
+            System.err.println("Error: Sala no encontrada para actualizar estado.");
+            return false;
         }
-        return false;
+        if (gestionSala.getEstado() == nuevoEstado) {
+            System.out.println("La sala ya tiene ese estado. No se realizan cambios.");
+            return false;
+        }
+        gestionSala.setEstado(nuevoEstado);
+        jsonDataManager.guardarGestionesSalas(gestionesSalas); // Guarda lista de GestionSala
+        return true;
     }
 
-    public EstadoSala getEstadoSala(Sala sala) {
-        GestionSala gestionSala = getGestionSalaPara(sala);
-        return (gestionSala != null) ? gestionSala.getEstado() : null;
-    }
+    public boolean eliminarSala(String nombre) {
+        Sala salaAEliminar = buscarSalaPorNombre(nombre);
+        if (salaAEliminar == null) {
+            System.err.println("Error: Sala no encontrada.");
+            return false;
+        }
+        // AsignacionControlador se inyecta después, importante el null check
+        if (asignacionControlador != null && asignacionControlador.salaTieneReservasActivas(salaAEliminar)) {
+            System.err.println("Error: No se puede eliminar la sala porque tiene asignaciones activas.");
+            return false;
+        }
 
-    public List<Sala> getSalasRegistradas() {
-        return gestionesSalas.stream()
-                .map(GestionSala::getSala)
-                .collect(Collectors.toList());
+        boolean eliminado = gestionesSalas.removeIf(gs -> gs.getSala().equals(salaAEliminar));
+        if (eliminado) {
+            jsonDataManager.guardarGestionesSalas(gestionesSalas); // Guarda lista de GestionSala
+        }
+        return eliminado;
     }
 
     public void listarSalas() {
@@ -82,34 +94,37 @@ public class SalaControlador {
             System.out.println("No hay salas registradas.");
             return;
         }
-        System.out.println("\n=== Listado de Salas ===");
-        for (int i = 0; i < gestionesSalas.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, gestionesSalas.get(i).getSala().toString());
-            System.out.println("   Estado: " + gestionesSalas.get(i).getEstado());
-            System.out.println("   Horarios Ocupados: " + gestionesSalas.get(i).getHorariosOcupados().size());
-        }
+        System.out.println("\n--- Lista de Salas ---");
+        gestionesSalas.forEach(gs -> System.out.println("Sala: " + gs.getSala().getNombre() +
+                ", Capacidad: " + gs.getSala().getCapacidad() +
+                ", Estado: " + gs.getEstado()));
     }
 
-    public Sala buscarSalaPorNombre(String nombre) {
+    public List<Sala> getSalasRegistradasPuras() { // Devuelve solo objetos Sala
         return gestionesSalas.stream()
-                .filter(gs -> gs.getSala().getNombre().equalsIgnoreCase(nombre))
                 .map(GestionSala::getSala)
-                .findFirst()
-                .orElse(null);
+                .collect(Collectors.toList());
     }
 
-    public GestionSala getGestionSalaPara(Sala salaInformativa) {
-        return gestionesSalas.stream()
-                .filter(gs -> gs.getSala().equals(salaInformativa))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public List<GestionSala> getGestionesSalasRegistradas() {
+    public List<GestionSala> getGestionesSalasRegistradas() { // Devuelve las GestionSala completas
         return new ArrayList<>(gestionesSalas);
     }
 
-    public void guardarTodasLasGestionesSalasEnArchivo() {
-        jsonDataManager.guardarGestionesSalas(gestionesSalas);
+    public EstadoSala getEstadoSala(Sala sala) {
+        return Optional.ofNullable(getGestionSalaPara(sala))
+                .map(GestionSala::getEstado)
+                .orElse(null);
+    }
+
+    public void guardarCambiosEnGestionSala(GestionSala gestionSala) {
+        // Encuentra la gestionSala en la lista y la actualiza
+        // Esto es importante porque si no, solo se modifica la referencia local
+        int index = gestionesSalas.indexOf(gestionSala);
+        if (index != -1) {
+            gestionesSalas.set(index, gestionSala); // Actualiza la instancia en la lista
+            jsonDataManager.guardarGestionesSalas(this.gestionesSalas);
+        } else {
+            System.err.println("Advertencia: GestionSala no encontrada en la lista para guardar. Puede haber inconsistencia.");
+        }
     }
 }
