@@ -1,128 +1,127 @@
-// controlador/CheckReserva.java
 package controlador;
 
-import modelo.Asignatura;
 import modelo.BloqueHorario;
-import modelo.Profesor;
-import modelo.Sala;
-import modelo.GestionSala;
-import modelo.Horario;
-import modelo.Reserva;
-import modelo.RutNotFoundException;
-import persistencia.JsonDataManager;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class CheckReserva {
 
-    private final JsonDataManager jsonDataManager;
 
-    public CheckReserva() {
-        this.jsonDataManager = new JsonDataManager();
+    /**
+     * obtenerIdProfesor
+     * <p>
+     * """""FALTA PONERR SI EL ARCHIVO ESTA O NO""""""""""""""""
+     * <p>
+     * Busca en el archivo BaseDeDatosProfesores y rut hasta que coincide la entrada o hay una linea blanca
+     * si encuenntra el rut retorna la ID
+     * Si No encuentra el rut retorna null y lanza una exeption
+     *
+     * @param rut
+     * @return
+     */
+    public String obtenerIdProfesor(String rut) throws RutNotFoundException {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosProfesores.json"));
+            JsonNode profesoresNode = rootNode.get("profesores");
+
+            if (profesoresNode.isArray()) {
+                for (JsonNode profesor : profesoresNode) {
+                    if (profesor.get("rut").asText().equals(rut)) {
+                        return profesor.get("ID").asText();
+                    }
+                }
+            }
+
+            throw new RutNotFoundException("El RUT " + rut + " no se encuentra en la base de datos");
+        } catch (IOException e) {
+            throw new RuntimeException("Error al leer el archivo de la base de datos", e);
+        }
     }
 
-    public String obtenerIdProfesor(String rut) throws RutNotFoundException {
-        List<Profesor> profesores = jsonDataManager.cargarProfesores();
-        return profesores.stream()
-                .filter(p -> p.getRut().equalsIgnoreCase(rut))
-                .map(Profesor::getId)
-                .findFirst()
-                .orElseThrow(() -> new RutNotFoundException("El RUT " + rut + " no se encuentra en la base de datos de profesores."));
+    // Clase para la excepción personalizada
+    public class RutNotFoundException extends Exception {
+        public RutNotFoundException(String message) {
+            super(message);
+        }
     }
 
     public boolean existeProfesor(String rut) {
         try {
-            return obtenerIdProfesor(rut) != null;
-        } catch (RutNotFoundException e) {
+            BufferedReader reader = new BufferedReader(new FileReader("BaseDatosPrfesores"));
+            String linea;
+
+            while ((linea = reader.readLine()) != null) {
+                String[] datos = linea.split(";");
+
+                if (datos.length == 2 && datos[0].trim().equals(rut.trim())) {
+                    reader.close();
+                    return true;
+                }
+            }
+            reader.close();
+            return false;
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo: " + e.getMessage());
             return false;
         }
     }
+    public boolean tieneRamo(String ID, String codigoRamo) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosRamos.json"));
 
-    public Profesor obtenerProfesorPorRut(String rut) {
-        List<Profesor> profesores = jsonDataManager.cargarProfesores();
-        return profesores.stream()
-                .filter(p -> p.getRut().equalsIgnoreCase(rut))
-                .findFirst()
-                .orElse(null);
-    }
+            // Verificar si existe el ID del profesor
+            if (!rootNode.has(ID)) {
+                return false;
+            }
 
-    public boolean existeSala(String nombreSala) {
-        List<GestionSala> gestionesSalas = jsonDataManager.cargarGestionesSalas();
-        return gestionesSalas.stream()
-                .anyMatch(gs -> gs.getSala().getNombre().equalsIgnoreCase(nombreSala));
-    }
+            // Obtener el array de ramos para ese ID
+            JsonNode ramosNode = rootNode.get(ID).get("ramos");
 
-    public Sala obtenerSalaPorNombre(String nombreSala) {
-        List<GestionSala> gestionesSalas = jsonDataManager.cargarGestionesSalas();
-        return gestionesSalas.stream()
-                .filter(gs -> gs.getSala().getNombre().equalsIgnoreCase(nombreSala))
-                .map(GestionSala::getSala)
-                .findFirst()
-                .orElse(null);
-    }
+            // Verificar si el código del ramo existe en el array
+            if (ramosNode.isArray()) {
+                for (JsonNode ramo : ramosNode) {
+                    if (ramo.asText().equals(codigoRamo)) {
+                        return true;
+                    }
+                }
+            }
 
-    public GestionSala obtenerGestionSalaPara(Sala salaInformativa) {
-        List<GestionSala> gestionesSalas = jsonDataManager.cargarGestionesSalas();
-        return gestionesSalas.stream()
-                .filter(gs -> gs.getSala().equals(salaInformativa))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public boolean profesorImparteAsignatura(Profesor profesor, String codigoRamo) {
-        if (profesor == null) {
+            return false;
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo JSON: " + e.getMessage());
             return false;
         }
-        return profesor.tieneAsignatura(codigoRamo);
     }
+    public String reservaLibre(String nombreSala, BloqueHorario bloque) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosReservas.json"));
 
-    public boolean salaEstaDisponible(Sala salaInformativa, String dia, BloqueHorario bloque) {
-        GestionSala gestionSala = obtenerGestionSalaPara(salaInformativa);
-        if (gestionSala == null) {
-            return false;
+            // Verificar si existe la sala
+            if (!rootNode.has(nombreSala)) {
+                return "Disponible"; // Si la sala no está en el registro, está disponible
+            }
+
+            // Obtener las reservas de la sala
+            JsonNode salaNode = rootNode.get(nombreSala);
+
+            // Verificar el estado para el bloque específico
+            if (salaNode.has(bloque.toString())) {
+                return salaNode.get(bloque.toString()).asText();
+            }
+
+            return "Disponible"; // Si no hay registro para ese bloque, está disponible
+
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo de reservas: " + e.getMessage());
+            return "Error al verificar disponibilidad";
         }
-        Horario horario = new Horario(dia, bloque);
-        return gestionSala.estaDisponible(horario);
     }
 
-    public boolean profesorTieneConflictoHorario(Profesor profesor, String dia, BloqueHorario bloque) {
-        if (profesor == null) {
-            return false;
-        }
-        List<Profesor> todosProfesores = jsonDataManager.cargarProfesores();
-        List<GestionSala> todasGestionesSalas = jsonDataManager.cargarGestionesSalas();
-        List<Reserva> reservas = jsonDataManager.cargarReservas(todosProfesores, todasGestionesSalas);
-
-        Horario horarioPropuesto = new Horario(dia, bloque);
-
-        return reservas.stream()
-                .filter(r -> r.getProfesor().equals(profesor))
-                .anyMatch(r -> r.getHorario().conflictuaCon(horarioPropuesto));
-    }
-
-    public boolean profesorTieneReservasActivas(Profesor profesor) {
-        if (profesor == null) {
-            return false;
-        }
-        List<Profesor> todosProfesores = jsonDataManager.cargarProfesores();
-        List<GestionSala> todasGestionesSalas = jsonDataManager.cargarGestionesSalas();
-        List<Reserva> reservas = jsonDataManager.cargarReservas(todosProfesores, todasGestionesSalas);
-
-        return reservas.stream()
-                .anyMatch(r -> r.getProfesor().equals(profesor));
-    }
-
-    public boolean salaTieneReservasActivas(Sala sala) {
-        if (sala == null) {
-            return false;
-        }
-        List<Profesor> todosProfesores = jsonDataManager.cargarProfesores();
-        List<GestionSala> todasGestionesSalas = jsonDataManager.cargarGestionesSalas();
-        List<Reserva> reservas = jsonDataManager.cargarReservas(todosProfesores, todasGestionesSalas);
-
-        return reservas.stream()
-                .anyMatch(r -> r.getSala().equals(sala));
-    }
 }

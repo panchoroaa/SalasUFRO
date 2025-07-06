@@ -1,0 +1,13 @@
+
+{
+  "salas": [
+    {
+      "nombre": "LAB. COMP. 101",
+      "capacidad": 30
+    },
+    {
+      "nombre": "Auditorio",
+      "capacidad": 100
+    }
+  ]
+}
