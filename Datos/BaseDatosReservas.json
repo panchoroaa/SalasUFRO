@@ -1,12 +1,22 @@
 {
-  "LAB. COMP. 101": {
-    "08:30 - 09:30": "Ocupado",
-    "09:40 - 10:40": "Disponible",
-    "10:50 - 11:50": "Ocupado"
-  },
-  "Auditorio": {
-    "08:30 - 09:30": "Disponible",
-    "09:40 - 10:40": "Disponible",
-    "10:50 - 11:50": "Disponible"
+  "salas": {
+    "LAB. COMP. 101": {
+      "Lunes": {
+        "BLOQUE_1": "Ocupado",
+        "BLOQUE_2": "Disponible",
+        "BLOQUE_3": "Ocupado"
+      },
+      "Martes": {
+        "BLOQUE_1": "Disponible",
+        "BLOQUE_2": "Disponible"
+      }
+    },
+    "Auditorio": {
+      "Lunes": {
+        "BLOQUE_1": "Disponible",
+        "BLOQUE_2": "Disponible",
+        "BLOQUE_3": "Disponible"
+      }
+    }
   }
 }

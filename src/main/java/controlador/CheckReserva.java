@@ -14,8 +14,6 @@ public class CheckReserva {
     /**
      * obtenerIdProfesor
      * <p>
-     * """""FALTA PONERR SI EL ARCHIVO ESTA O NO""""""""""""""""
-     * <p>
      * Busca en el archivo BaseDeDatosProfesores y rut hasta que coincide la entrada o hay una linea blanca
      * si encuenntra el rut retorna la ID
      * Si No encuentra el rut retorna null y lanza una exeption
@@ -73,7 +71,7 @@ public class CheckReserva {
     public boolean tieneRamo(String ID, String codigoRamo) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(new File("BaseDatosRamos.json"));
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosRamosProfesor.json"));
 
             // Verificar si existe el ID del profesor
             if (!rootNode.has(ID)) {
@@ -98,30 +96,39 @@ public class CheckReserva {
             return false;
         }
     }
-    public String reservaLibre(String nombreSala, BloqueHorario bloque) {
+    public String reservaLibre(String nombreSala, String dia, BloqueHorario bloque) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(new File("BaseDatosReservas.json"));
 
-            // Verificar si existe la sala
-            if (!rootNode.has(nombreSala)) {
-                return "Disponible"; // Si la sala no está en el registro, está disponible
+            // Verificar si existe el nodo salas
+            JsonNode salasNode = rootNode.get("salas");
+            if (salasNode == null || !salasNode.has(nombreSala)) {
+                return "Disponible"; // Si la sala no está registrada
             }
 
-            // Obtener las reservas de la sala
-            JsonNode salaNode = rootNode.get(nombreSala);
+            // Obtener el nodo de la sala específica
+            JsonNode salaNode = salasNode.get(nombreSala);
 
-            // Verificar el estado para el bloque específico
-            if (salaNode.has(bloque.toString())) {
-                return salaNode.get(bloque.toString()).asText();
+            // Verificar si existe el día
+            if (!salaNode.has(dia)) {
+                return "Disponible"; // Si el día no está registrado
             }
 
-            return "Disponible"; // Si no hay registro para ese bloque, está disponible
+            // Obtener el nodo del día específico
+            JsonNode diaNode = salaNode.get(dia);
+
+            // Verificar si existe el bloque horario
+            if (!diaNode.has(bloque.name())) {
+                return "Disponible"; // Si el bloque no está registrado
+            }
+
+            // Retornar el estado del bloque
+            return diaNode.get(bloque.name()).asText();
 
         } catch (IOException e) {
             System.out.println("Error al leer el archivo de reservas: " + e.getMessage());
             return "Error al verificar disponibilidad";
         }
     }
-
 }
