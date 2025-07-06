@@ -25,18 +25,18 @@ public class CheckReserva {
      */
     public String obtenerIdProfesor(String rut) throws RutNotFoundException {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("BaseDatosProfesores"));
-            String linea;
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(new File("BaseDatosProfesores.json"));
+            JsonNode profesoresNode = rootNode.get("profesores");
 
-            while ((linea = reader.readLine()) != null) {
-                String[] datos = linea.split(";");
-
-                if (datos.length == 2 && datos[0].trim().equals(rut.trim())) {
-                    reader.close();
-                    return datos[1].trim();
+            if (profesoresNode.isArray()) {
+                for (JsonNode profesor : profesoresNode) {
+                    if (profesor.get("rut").asText().equals(rut)) {
+                        return profesor.get("ID").asText();
+                    }
                 }
             }
-            reader.close();
+
             throw new RutNotFoundException("El RUT " + rut + " no se encuentra en la base de datos");
         } catch (IOException e) {
             throw new RuntimeException("Error al leer el archivo de la base de datos", e);
@@ -52,7 +52,7 @@ public class CheckReserva {
 
     public boolean existeProfesor(String rut) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("BaseDatosProfesores"));
+            BufferedReader reader = new BufferedReader(new FileReader("BaseDatosPrfesores"));
             String linea;
 
             while ((linea = reader.readLine()) != null) {

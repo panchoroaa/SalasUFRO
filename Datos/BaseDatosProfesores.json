@@ -1,0 +1,10 @@
+{
+  "profesores": [
+    {
+      "rut": "213231057",
+      "nombre": "Nombre del Profesor",
+      "departamento": "Departamento de Informática",
+      "ID": "1"
+    }
+  ]
+}

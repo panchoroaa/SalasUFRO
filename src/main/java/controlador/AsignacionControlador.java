@@ -13,7 +13,7 @@ import java.util.Scanner;
 
 public class AsignacionControlador {
     private final Scanner scanner = new Scanner(System.in);
-    private static final String NOMBRE_ARCHIVO_PROFESORES = "BaseDatosProfesores.txt";
+    private static final String NOMBRE_ARCHIVO_PROFESORES = "BaseDatosProfesres.json";
     private final SalaControlador salaControlador;
 
     public AsignacionControlador() {
