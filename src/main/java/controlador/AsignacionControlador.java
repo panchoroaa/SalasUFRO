@@ -20,12 +20,10 @@ public class AsignacionControlador {
     private final JsonDataManager jsonDataManager;
     private List<Reserva> reservas;
 
-    // Constructor: No recibe InputHandler
     public AsignacionControlador(ProfesorControlador profesorControlador, SalaControlador salaControlador) {
         this.profesorControlador = profesorControlador;
         this.salaControlador = salaControlador;
         this.jsonDataManager = new JsonDataManager();
-        // Cargar reservas, reasociando con objetos completos de profesor y gestionSala
         this.reservas = jsonDataManager.cargarReservas(
                 profesorControlador.getProfesoresRegistrados(),
                 salaControlador.getGestionesSalasRegistradas()
@@ -39,26 +37,16 @@ public class AsignacionControlador {
             if (gestionSala != null) {
                 reserva.setGestionSalaAsociada(gestionSala);
             } else {
-                System.err.println("Advertencia: No se encontró GestionSala para la sala " + reserva.getSala().getNombre() + " de la reserva cargada.");
+                System.err.println("Advertencia: No se encontró GestionSala en memoria para la sala " + reserva.getSala().getNombre() + " de la reserva cargada.");
             }
         }
     }
 
-    // Método para realizar la asignación. Recibe parámetros ya validados.
     public String realizarAsignacion(Profesor profesor, Sala salaInformativa, Asignatura asignatura, String dia, BloqueHorario bloque) {
         Horario horario = new Horario(dia, bloque);
-
         GestionSala gestionSala = salaControlador.getGestionSalaPara(salaInformativa);
         if (gestionSala == null) {
-            return "Error: No se encontró la gestión de sala para la sala seleccionada.";
-        }
-
-        if (!gestionSala.estaDisponible(horario)) {
-            return "La sala " + salaInformativa.getNombre() + " no está disponible en el horario " + horario + " o está en mantenimiento.";
-        }
-
-        if (profesorTieneConflictoHorario(profesor, horario)) {
-            return "El profesor " + profesor.getNombre() + " ya tiene una asignación en el horario " + horario + ".";
+            return "Error interno: No se encontró la gestión de sala en memoria para la sala seleccionada.";
         }
 
         try {
@@ -74,15 +62,9 @@ public class AsignacionControlador {
         }
     }
 
-    private boolean profesorTieneConflictoHorario(Profesor profesor, Horario horario) {
-        return reservas.stream()
-                .filter(r -> r.getProfesor().equals(profesor))
-                .anyMatch(r -> r.getHorario().conflictuaCon(horario));
-    }
-
     public void listarAsignaciones() {
         if (reservas.isEmpty()) {
-            System.out.println("No hay asignaciones de salas registradas."); // El controlador imprime directamente aquí
+            System.out.println("No hay asignaciones de salas registradas.");
             return;
         }
         System.out.println("\n=== Listado de Asignaciones de Salas ===");
@@ -91,30 +73,20 @@ public class AsignacionControlador {
         }
     }
 
-    // Nuevo método para que SelectorMenu obtenga las reservas como strings
     public List<String> getReservasParaUI() {
         return reservas.stream()
                 .map(Reserva::toString)
                 .collect(Collectors.toList());
     }
 
-    // Método para cancelar la asignación. Recibe el índice (0-basado)
     public String cancelarAsignacion(int index) {
         if (index < 0 || index >= reservas.size()) {
             return "Índice de asignación inválido.";
         }
         Reserva reservaACancelar = reservas.remove(index);
-        reservaACancelar.cancelar(); // Esto llama al método cancelar de Reserva, que actualiza GestionSala
+        reservaACancelar.cancelar();
         jsonDataManager.guardarReservas(reservas);
-        salaControlador.guardarTodasLasGestionesSalasEnArchivo(); // Persiste la sala con el horario liberado
+        salaControlador.guardarTodasLasGestionesSalasEnArchivo();
         return "Asignación cancelada exitosamente: " + reservaACancelar.toString();
-    }
-
-    public boolean profesorTieneReservasActivas(Profesor profesor) {
-        return reservas.stream().anyMatch(r -> r.getProfesor().equals(profesor));
-    }
-
-    public boolean salaTieneReservasActivas(Sala sala) {
-        return reservas.stream().anyMatch(r -> r.getSala().equals(sala));
     }
 }
