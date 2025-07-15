@@ -1,21 +1,20 @@
 package modelo;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Arrays;
+
 
 public class Horario {
     private DiaSemana dia;
-    private int bloque;
-
-    public Horario(DiaSemana dia, int bloque) {
+    private BloqueHorario bloqueEnum;
+    public Horario(DiaSemana dia, BloqueHorario bloqueEnum) {
         this.dia = dia;
-        this.bloque = bloque;
+        this.bloqueEnum = bloqueEnum;
     }
 
     public Horario() {
     }
 
+    // --- Getters y Setters ---
     public DiaSemana getDia() {
         return dia;
     }
@@ -24,24 +23,26 @@ public class Horario {
         this.dia = dia;
     }
 
+    public BloqueHorario getBloqueEnum() {
+        return bloqueEnum;
+    }
+
+    public void setBloqueEnum(BloqueHorario bloqueEnum) {
+        this.bloqueEnum = bloqueEnum;
+    }
+
     public int getBloque() {
-        return bloque;
+        return bloqueEnum != null ? bloqueEnum.getNumeroBloque() : 0;
     }
 
     public void setBloque(int bloque) {
-        this.bloque = bloque;
+        this.bloqueEnum = BloqueHorario.fromNumeroBloque(bloque).orElse(null);
     }
+
 
     @Override
     public String toString() {
-        Optional<BloqueHorario> bloqueEnum = Arrays.stream(BloqueHorario.values())
-                .filter(b -> (b.ordinal() + 1) == this.bloque)
-                .findFirst();
-
-        String descripcionBloque = bloqueEnum.map(BloqueHorario::toString)
-                .orElse("Bloque " + this.bloque + " (Horario no definido)");
-
-        return String.format("%s %s", dia.toString(), descripcionBloque);
+        return String.format("%s %s", dia.toString(), bloqueEnum != null ? bloqueEnum.toString() : "Bloque N/A");
     }
 
     @Override
@@ -49,11 +50,12 @@ public class Horario {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Horario horario = (Horario) o;
-        return bloque == horario.bloque && dia == horario.dia;
+        return Objects.equals(dia, horario.dia) &&
+                Objects.equals(bloqueEnum, horario.bloqueEnum);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dia, bloque);
+        return Objects.hash(dia, bloqueEnum);
     }
 }

@@ -23,7 +23,6 @@ public class AsignacionControlador {
         this.reservas = dataManager.cargarReservas();
     }
 
-    // --- Métodos para la VISTA ---
     public List<Profesor> getProfesores() { return profesores; }
     public List<Sala> getSalas() { return salas; }
     public List<Asignatura> getAsignaturas() { return asignaturas; }
@@ -33,7 +32,6 @@ public class AsignacionControlador {
         return profesores.stream().filter(p -> p.getRut().equals(rut)).findFirst();
     }
 
-    // CORRECCIÓN: Usar el parámetro 'nombre' correctamente.
     public Optional<Sala> getSalaPorNombre(String nombre) {
         return salas.stream().filter(s -> s.getNombre().equals(nombre)).findFirst();
     }
@@ -90,14 +88,10 @@ public class AsignacionControlador {
     }
 
     public String cancelarAsignacion(Reserva reserva) {
-        // CORRECCIÓN: Lambda de una sola expresión
         getSalaPorNombre(reserva.getNombreSala()).ifPresent(sala -> sala.removerHorarioOcupado(reserva.getHorario()));
-
         reservas.remove(reserva);
-
         dataManager.guardarReservas(reservas);
         dataManager.guardarSalas(salas);
-
         return "¡Asignación cancelada con éxito!";
     }
 
@@ -107,7 +101,6 @@ public class AsignacionControlador {
                 .anyMatch(r -> r.getHorario().equals(horario));
     }
 
-    // --- Métodos de Ayuda para filtrar disponibilidad ---
     public List<Profesor> getProfesoresDisponibles(Asignatura asignatura, Horario horario) {
         return profesores.stream()
                 .filter(p -> p.imparteAsignatura(asignatura.getCodigo()))
@@ -133,8 +126,6 @@ public class AsignacionControlador {
                 .collect(Collectors.toList());
     }
 
-    // --- MÉTODOS DE BÚSQUEDA / FILTRO (I.3) ---
-
     public List<Profesor> buscarProfesores(String query) {
         String lowerCaseQuery = query.toLowerCase().trim();
         return profesores.stream()
@@ -158,14 +149,6 @@ public class AsignacionControlador {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filtra las reservas basándose en el profesor, sala o día de la semana.
-     * Si un parámetro es null o vacío, no se usa como filtro.
-     * @param rutProfesor Rut del profesor (opcional).
-     * @param nombreSala Nombre de la sala (opcional).
-     * @param dia Semana Día de la semana (opcional).
-     * @return Lista de reservas filtradas.
-     */
     public List<Reserva> filtrarReservas(String rutProfesor, String nombreSala, DiaSemana dia) {
         return reservas.stream()
                 .filter(r -> (rutProfesor == null || rutProfesor.isEmpty() || r.getRutProfesor().equalsIgnoreCase(rutProfesor)))
@@ -173,5 +156,4 @@ public class AsignacionControlador {
                 .filter(r -> (dia == null || r.getHorario().getDia() == dia))
                 .collect(Collectors.toList());
     }
-
 }

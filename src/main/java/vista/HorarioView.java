@@ -5,6 +5,7 @@ import modelo.DiaSemana;
 import modelo.Horario;
 
 import java.util.List;
+import java.util.Optional; // Necesitas esta importación
 
 public class HorarioView {
     private final InputOutputHelper io;
@@ -16,7 +17,7 @@ public class HorarioView {
     public Horario solicitarHorario() {
         io.mostrarMensajeExito("--- Ingrese Horario ---");
         String diaString = solicitarDiaSemana();
-        if (diaString == null) return null; // Usuario canceló
+        if (diaString == null) return null;
 
         DiaSemana diaEnum;
         try {
@@ -26,10 +27,18 @@ public class HorarioView {
             return null;
         }
 
-        Integer bloqueIndex = solicitarBloqueHorario();
-        if (bloqueIndex == null) return null; // Usuario canceló
+        Integer bloqueNumero = solicitarBloqueHorario();
+        if (bloqueNumero == null) return null;
 
-        return new Horario(diaEnum, bloqueIndex);
+        // ** CORRECCIÓN CLAVE AQUÍ: Convertir el número a un objeto BloqueHorario **
+        Optional<BloqueHorario> bloqueOpt = BloqueHorario.fromNumeroBloque(bloqueNumero);
+        if (bloqueOpt.isEmpty()) {
+            io.mostrarMensajeError("Error: El número de bloque '" + bloqueNumero + "' no corresponde a un BloqueHorario válido.");
+            return null;
+        }
+        BloqueHorario bloqueEnum = bloqueOpt.get();
+
+        return new Horario(diaEnum, bloqueEnum); // Pasar el objeto BloqueHorario
     }
 
     private String solicitarDiaSemana() {
