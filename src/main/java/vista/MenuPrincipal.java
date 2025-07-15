@@ -1,7 +1,7 @@
 package vista;
 
 import controlador.AsignacionControlador;
-import modelo.*; // Asegúrate de que DiaSemana y BloqueHorario estén aquí o en otro paquete importado
+import modelo.*;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +50,7 @@ public class MenuPrincipal {
         System.out.println("\n╔══════════════════════════════════════╗");
         System.out.println("║         SISTEMA DE ASIGNACIÓN DE SALAS  ║");
         System.out.println("╠═════════════════════════════════════════╣");
-        System.out.println("║ 1. Gestión de Asignaciones              ║"); // Nuevo submenú
+        System.out.println("║ 1. Gestión de Asignaciones              ║");
         System.out.println("║ 2. Gestión de Profesores                ║");
         System.out.println("║ 3. Gestión de Salas                     ║");
         System.out.println("║ 4. Gestión de Asignaturas               ║");
@@ -68,6 +68,7 @@ public class MenuPrincipal {
             System.out.println("1. Realizar Nueva Asignación");
             System.out.println("2. Cancelar Asignación");
             System.out.println("3. Ver Todas las Asignaciones");
+            System.out.println("4. Filtrar Asignaciones"); // NUEVO: Filtro
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Ingrese su opción: ");
             opcion = leerOpcion();
@@ -81,6 +82,9 @@ public class MenuPrincipal {
                     break;
                 case 3:
                     verTodasLasAsignaciones();
+                    break;
+                case 4:
+                    filtrarAsignaciones(); // NUEVO MÉTODO
                     break;
                 case 0:
                     System.out.println("Volviendo al Menú Principal...");
@@ -98,6 +102,7 @@ public class MenuPrincipal {
             System.out.println("1. Ver todos los Profesores");
             System.out.println("2. Ver Asignaturas Impartidas por un Profesor");
             System.out.println("3. Ver Horario de un Profesor");
+            System.out.println("4. Buscar Profesor"); // NUEVO: Búsqueda
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Ingrese su opción: ");
             opcion = leerOpcion();
@@ -111,6 +116,9 @@ public class MenuPrincipal {
                     break;
                 case 3:
                     verHorarioDeUnProfesor();
+                    break;
+                case 4:
+                    buscarProfesor(); // NUEVO MÉTODO
                     break;
                 case 0:
                     System.out.println("Volviendo al Menú Principal...");
@@ -127,6 +135,7 @@ public class MenuPrincipal {
             System.out.println("\n--- Gestión de Salas ---");
             System.out.println("1. Ver todas las Salas");
             System.out.println("2. Ver Horario de una Sala");
+            System.out.println("3. Buscar Sala"); // NUEVO: Búsqueda
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Ingrese su opción: ");
             opcion = leerOpcion();
@@ -137,6 +146,9 @@ public class MenuPrincipal {
                     break;
                 case 2:
                     verHorarioDeUnaSala();
+                    break;
+                case 3:
+                    buscarSala(); // NUEVO MÉTODO
                     break;
                 case 0:
                     System.out.println("Volviendo al Menú Principal...");
@@ -152,6 +164,7 @@ public class MenuPrincipal {
         do {
             System.out.println("\n--- Gestión de Asignaturas ---");
             System.out.println("1. Ver todas las Asignaturas");
+            System.out.println("2. Buscar Asignatura"); // NUEVO: Búsqueda
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Ingrese su opción: ");
             opcion = leerOpcion();
@@ -159,6 +172,9 @@ public class MenuPrincipal {
             switch (opcion) {
                 case 1:
                     verTodasAsignaturas();
+                    break;
+                case 2:
+                    buscarAsignatura(); // NUEVO MÉTODO
                     break;
                 case 0:
                     System.out.println("Volviendo al Menú Principal...");
@@ -187,7 +203,6 @@ public class MenuPrincipal {
             return;
         }
 
-        // Obtener y seleccionar profesor filtrado
         List<Profesor> profesoresDisponibles = controlador.getProfesoresDisponibles(asignaturaSeleccionada, horarioSeleccionado);
         if (profesoresDisponibles.isEmpty()) {
             mostrarMensajeError("No hay profesores disponibles que impartan '" + asignaturaSeleccionada.getNombre() + "' y estén libres en el horario seleccionado.");
@@ -199,7 +214,6 @@ public class MenuPrincipal {
             return;
         }
 
-        // Obtener y seleccionar sala filtrada
         List<Sala> salasDisponibles = controlador.getSalasDisponiblesEnHorario(horarioSeleccionado);
         if (salasDisponibles.isEmpty()) {
             mostrarMensajeError("No hay salas disponibles en el horario seleccionado.");
@@ -211,7 +225,7 @@ public class MenuPrincipal {
             return;
         }
 
-        String resultado = controlador.realizarAsignacion(profesorSeleccionado, salaSeleccionada, asignaturaSeleccionada, horarioSeleccionado);
+        String resultado = controlador.crearAsignacion(profesorSeleccionado.getRut(), salaSeleccionada.getNombre(), asignaturaSeleccionada.getCodigo(), horarioSeleccionado);
         procesarResultadoOperacion(resultado);
     }
 
@@ -231,7 +245,8 @@ public class MenuPrincipal {
                     if (p.isPresent() && s.isPresent() && a.isPresent()) {
                         return r.toStringCompleto(p.get(), s.get(), a.get());
                     } else {
-                        return r.toString();
+                        // CORRECCIÓN: Eliminar .toString() redundante si es la única cosa en el println
+                        return r.toString(); // Dejar .toString() aquí si Reserva no es el tipo base esperado por println
                     }
                 })
                 .collect(Collectors.toList());
@@ -245,7 +260,6 @@ public class MenuPrincipal {
 
         Reserva reservaACancelar = reservasActuales.get(indiceSeleccionado - 1);
 
-        // --- Confirmación de la acción ---
         System.out.println("\nVa a cancelar la siguiente asignación:");
         Optional<Profesor> p = controlador.getProfesorPorRut(reservaACancelar.getRutProfesor());
         Optional<Sala> s = controlador.getSalaPorNombre(reservaACancelar.getNombreSala());
@@ -253,7 +267,8 @@ public class MenuPrincipal {
         if (p.isPresent() && s.isPresent() && a.isPresent()) {
             System.out.println(reservaACancelar.toStringCompleto(p.get(), s.get(), a.get()));
         } else {
-            System.out.println(reservaACancelar.toString());
+            // CORRECCIÓN: Eliminar .toString() redundante si es la única cosa en el println
+            System.out.println(reservaACancelar); // Java llamará a toString() automáticamente
         }
 
         System.out.print("¿Está seguro que desea cancelar esta asignación? (S/N): ");
@@ -263,7 +278,6 @@ public class MenuPrincipal {
             mostrarCancelacionOperacion("cancelar asignación");
             return;
         }
-        // --- Fin de confirmación ---
 
         String resultado = controlador.cancelarAsignacion(reservaACancelar);
         procesarResultadoOperacion(resultado);
@@ -285,7 +299,8 @@ public class MenuPrincipal {
             if (p.isPresent() && s.isPresent() && a.isPresent()) {
                 System.out.println(r.toStringCompleto(p.get(), s.get(), a.get()));
             } else {
-                System.out.println(r.toString());
+                // CORRECCIÓN: Eliminar .toString() redundante si es la única cosa en el println
+                System.out.println(r); // Java llamará a toString() automáticamente
             }
         });
     }
@@ -352,41 +367,151 @@ public class MenuPrincipal {
         asignaturas.forEach(System.out::println);
     }
 
+    // --- NUEVOS MÉTODOS DE BÚSQUEDA Y FILTRO (I.3) ---
+
+    private void buscarProfesor() {
+        System.out.println("\n--- Buscar Profesor ---");
+        System.out.print("Ingrese nombre o RUT del profesor a buscar (0 para cancelar): ");
+        String query = scanner.nextLine();
+        if (query.equals("0")) { mostrarCancelacionOperacion("búsqueda de profesor"); return; }
+
+        List<Profesor> resultados = controlador.buscarProfesores(query);
+        mostrarResultadosBusqueda(resultados, "profesor");
+    }
+
+    private void buscarSala() {
+        System.out.println("\n--- Buscar Sala ---");
+        System.out.print("Ingrese nombre de la sala a buscar (0 para cancelar): ");
+        String query = scanner.nextLine();
+        if (query.equals("0")) { mostrarCancelacionOperacion("búsqueda de sala"); return; }
+
+        List<Sala> resultados = controlador.buscarSalas(query);
+        mostrarResultadosBusqueda(resultados, "sala");
+    }
+
+    private void buscarAsignatura() {
+        System.out.println("\n--- Buscar Asignatura ---");
+        System.out.print("Ingrese nombre o código de la asignatura a buscar (0 para cancelar): ");
+        String query = scanner.nextLine();
+        if (query.equals("0")) { mostrarCancelacionOperacion("búsqueda de asignatura"); return; }
+
+        List<Asignatura> resultados = controlador.buscarAsignaturas(query);
+        mostrarResultadosBusqueda(resultados, "asignatura");
+    }
+
+    private void filtrarAsignaciones() {
+        System.out.println("\n--- Filtrar Asignaciones ---");
+        String rutProfesor = null;
+        String nombreSala = null;
+        DiaSemana dia = null;
+
+        System.out.print("Filtrar por RUT de Profesor (deje vacío para omitir, 0 para cancelar): ");
+        String inputProfesor = scanner.nextLine().trim();
+        if (inputProfesor.equals("0")) { mostrarCancelacionOperacion("filtrar asignaciones"); return; }
+        if (!inputProfesor.isEmpty()) {
+            rutProfesor = inputProfesor;
+            if (controlador.getProfesorPorRut(rutProfesor).isEmpty()) {
+                mostrarMensajeError("Profesor con RUT '" + rutProfesor + "' no encontrado. Cancelando filtro.");
+                return;
+            }
+        }
+
+        System.out.print("Filtrar por Nombre de Sala (deje vacío para omitir, 0 para cancelar): ");
+        String inputSala = scanner.nextLine().trim();
+        if (inputSala.equals("0")) { mostrarCancelacionOperacion("filtrar asignaciones"); return; }
+        if (!inputSala.isEmpty()) {
+            nombreSala = inputSala;
+            if (controlador.getSalaPorNombre(nombreSala).isEmpty()) {
+                mostrarMensajeError("Sala '" + nombreSala + "' no encontrada. Cancelando filtro.");
+                return;
+            }
+        }
+
+        System.out.print("Filtrar por Día de la Semana (LUNES-SABADO, deje vacío para omitir, 0 para cancelar): ");
+        String inputDia = scanner.nextLine().trim().toUpperCase();
+        if (inputDia.equals("0")) { mostrarCancelacionOperacion("filtrar asignaciones"); return; }
+        if (!inputDia.isEmpty()) {
+            try {
+                dia = DiaSemana.valueOf(inputDia);
+            } catch (IllegalArgumentException e) {
+                mostrarMensajeError("Día de la semana no válido. Debe ser LUNES, MARTES, etc. Cancelando filtro.");
+                return;
+            }
+        }
+
+        // CORRECCIÓN: Simplificación de la condición
+        // La condición 'isEmpty()' después de '!input.isEmpty()' es redundante.
+        if (rutProfesor == null && nombreSala == null && dia == null) {
+            System.out.println("No se especificaron criterios de filtro. Mostrando todas las asignaciones.");
+            verTodasLasAsignaciones();
+            return;
+        }
+
+        List<Reserva> resultados = controlador.filtrarReservas(rutProfesor, nombreSala, dia);
+        mostrarResultadosBusquedaReservas(resultados);
+    }
+
+    private <T> void mostrarResultadosBusqueda(List<T> resultados, String tipoElemento) {
+        if (resultados.isEmpty()) {
+            System.out.println("No se encontraron " + tipoElemento + "es que coincidan con la búsqueda.");
+            return;
+        }
+        System.out.println("\n--- Resultados de la búsqueda de " + tipoElemento + "es ---");
+        resultados.forEach(System.out::println); // Java llamará a toString() automáticamente
+    }
+
+    private void mostrarResultadosBusquedaReservas(List<Reserva> resultados) {
+        if (resultados.isEmpty()) {
+            System.out.println("No se encontraron asignaciones que coincidan con los filtros.");
+            return;
+        }
+        System.out.println("\n--- Resultados de Asignaciones Filtradas ---");
+        resultados.forEach(r -> {
+            Optional<Profesor> p = controlador.getProfesorPorRut(r.getRutProfesor());
+            Optional<Sala> s = controlador.getSalaPorNombre(r.getNombreSala());
+            Optional<Asignatura> a = controlador.getAsignaturaPorCodigo(r.getCodigoAsignatura());
+            if (p.isPresent() && s.isPresent() && a.isPresent()) {
+                System.out.println(r.toStringCompleto(p.get(), s.get(), a.get()));
+            } else {
+                // CORRECCIÓN: Eliminar .toString() redundante si es la única cosa en el println
+                System.out.println(r); // Java llamará a toString() automáticamente
+            }
+        });
+    }
 
     // --- MÉTODOS AUXILIARES PARA SELECCIÓN Y VISUALIZACIÓN ---
 
-    private Object seleccionarElemento(List<?> lista, String tipoElemento) {
-        if (lista.isEmpty()) {
-            System.out.println("No hay " + tipoElemento + "s disponibles.");
-            return null;
-        }
-        System.out.println("Seleccione un " + tipoElemento + ":");
-        AtomicInteger index = new AtomicInteger(1);
-        lista.forEach(item -> System.out.println(index.getAndIncrement() + ". " + item.toString()));
-        System.out.println("0. Cancelar");
-
-        int opcion = leerOpcion();
-        if (opcion > 0 && opcion <= lista.size()) {
-            return lista.get(opcion - 1);
-        }
-        return null;
-    }
-
-    private Integer seleccionarIndiceElemento(List<?> lista, String tipoElemento) {
+    // NUEVO MÉTODO AUXILIAR para evitar duplicación de código
+    private Integer pedirIndiceDeLista(List<?> lista, String tipoElemento) {
         if (lista.isEmpty()) {
             System.out.println("No hay " + tipoElemento + "s disponibles para seleccionar.");
             return null;
         }
-        System.out.println("Seleccione el " + tipoElemento + " a cancelar:");
+        System.out.println("Seleccione un " + tipoElemento + ":");
         AtomicInteger index = new AtomicInteger(1);
-        lista.forEach(item -> System.out.println(index.getAndIncrement() + ". " + item.toString()));
+        // CORRECCIÓN: Eliminar .toString() redundante
+        lista.forEach(item -> System.out.println(index.getAndIncrement() + ". " + item)); // Java llamará a toString() automáticamente
         System.out.println("0. Cancelar");
 
         int opcion = leerOpcion();
         if (opcion > 0 && opcion <= lista.size()) {
             return opcion;
         }
+        return null; // El usuario canceló o ingresó una opción inválida
+    }
+
+    // Método refactorizado para usar el nuevo auxiliar
+    private Object seleccionarElemento(List<?> lista, String tipoElemento) {
+        Integer opcionIndex = pedirIndiceDeLista(lista, tipoElemento);
+        if (opcionIndex != null) {
+            return lista.get(opcionIndex - 1);
+        }
         return null;
+    }
+
+    // Método refactorizado para usar el nuevo auxiliar
+    private Integer seleccionarIndiceElemento(List<?> lista, String tipoElemento) {
+        return pedirIndiceDeLista(lista, tipoElemento);
     }
 
     private Optional<Profesor> seleccionarProfesor() {
@@ -416,7 +541,6 @@ public class MenuPrincipal {
         return Optional.ofNullable((Asignatura) seleccionarElemento(asignaturas, "asignatura"));
     }
 
-
     private void mostrarAsignaturasDeProfesor(Profesor profesor) {
         List<Asignatura> asignaturasImpartidas = profesor.getAsignaturasImpartidas();
         if (asignaturasImpartidas.isEmpty()) {
@@ -439,7 +563,7 @@ public class MenuPrincipal {
             Optional<Sala> s = controlador.getSalaPorNombre(r.getNombreSala());
             Optional<Asignatura> a = controlador.getAsignaturaPorCodigo(r.getCodigoAsignatura());
             System.out.printf("  - %s: Sala: %s, Asignatura: %s%n",
-                    r.getHorario().toString(),
+                    r.getHorario(), // toString() se llama implícitamente en printf
                     s.map(Sala::getNombre).orElse("Desconocida"),
                     a.map(Asignatura::getNombre).orElse("Desconocida"));
         });
@@ -457,7 +581,7 @@ public class MenuPrincipal {
             Optional<Profesor> p = controlador.getProfesorPorRut(r.getRutProfesor());
             Optional<Asignatura> a = controlador.getAsignaturaPorCodigo(r.getCodigoAsignatura());
             System.out.printf("  - %s: Profesor: %s, Asignatura: %s%n",
-                    r.getHorario().toString(),
+                    r.getHorario(), // toString() se llama implícitamente en printf
                     p.map(Profesor::getNombre).orElse("Desconocido"),
                     a.map(Asignatura::getNombre).orElse("Desconocida"));
         });
@@ -470,12 +594,10 @@ public class MenuPrincipal {
         String diaString = solicitarDiaSemana();
         if (diaString == null) return null;
 
-        // Convertir el String del día a un enum DiaSemana
         DiaSemana diaEnum;
         try {
-            diaEnum = DiaSemana.valueOf(diaString); // Asume que DiaSemana tiene los nombres exactos (LUNES, MARTES, etc.)
+            diaEnum = DiaSemana.valueOf(diaString);
         } catch (IllegalArgumentException e) {
-            // Esto no debería ocurrir si solicitarDiaSemana() ya valida, pero es una buena práctica
             mostrarMensajeError("Error interno: Día no reconocido. " + e.getMessage());
             return null;
         }
@@ -491,13 +613,11 @@ public class MenuPrincipal {
             System.out.print("Ingrese el día (LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, 0 para cancelar): ");
             String dia = scanner.nextLine().trim().toUpperCase();
             if (dia.equals("0")) {
-                return null; // El usuario eligió cancelar
+                return null;
             }
-            // Validar que el día ingresado sea uno de los permitidos
             if (List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO").contains(dia)) {
-                return dia; // Día válido, se retorna
+                return dia;
             }
-            // Si el día no es válido y no es "0", se imprime el mensaje y se repite el bucle
             System.out.println("Día no válido. Por favor, ingrese un día válido de la semana.");
         }
     }
@@ -507,25 +627,26 @@ public class MenuPrincipal {
             System.out.println("\nSeleccione el bloque horario:");
             BloqueHorario[] bloques = BloqueHorario.values();
             for (int i = 0; i < bloques.length; i++) {
-                System.out.println((i + 1) + ". " + bloques[i].toString());
+                // CORRECCIÓN: Eliminar .toString() redundante
+                System.out.println((i + 1) + ". " + bloques[i]); // Java llamará a toString() automáticamente
             }
             System.out.println("0. Cancelar");
             System.out.print("Ingrese su opción: ");
 
             try {
                 int opcion = scanner.nextInt();
-                scanner.nextLine(); // Consumir newline
+                scanner.nextLine();
 
                 if (opcion == 0) {
-                    return null; // El usuario eligió cancelar
+                    return null;
                 }
                 if (opcion >= 1 && opcion <= bloques.length) {
-                    return opcion; // Retorna el índice (sumándole 1 para coincidir con la lista visible)
+                    return opcion;
                 }
                 System.out.println("Opción no válida. Por favor, ingrese un número de la lista.");
             } catch (InputMismatchException e) {
                 System.out.println("Entrada no válida. Por favor, ingrese un número.");
-                scanner.nextLine(); // Consumir entrada incorrecta
+                scanner.nextLine();
             }
         }
     }
@@ -533,12 +654,12 @@ public class MenuPrincipal {
     private int leerOpcion() {
         try {
             int opcion = scanner.nextInt();
-            scanner.nextLine(); // Consumir newline
+            scanner.nextLine();
             return opcion;
         } catch (InputMismatchException e) {
             System.out.println("Entrada no válida. Por favor, ingrese un número.");
-            scanner.nextLine(); // Consumir la entrada incorrecta
-            return -1; // Retorna un valor no válido para que se repita el ciclo
+            scanner.nextLine();
+            return -1;
         }
     }
 

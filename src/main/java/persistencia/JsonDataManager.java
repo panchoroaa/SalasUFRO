@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JsonDataManager {
-    // La carpeta de datos ahora apunta directamente a src/main/resources
+    // La carpeta de datos apunta directamente a src/main/resources
     private static final String DATA_FOLDER = "src/main/resources";
     private static final String PROFESORES_FILE = "BaseDatosProfesores.json";
     private static final String SALAS_FILE = "BaseDatosSalas.json";
@@ -31,9 +31,10 @@ public class JsonDataManager {
     private void inicializarArchivosSiNoExisten() {
         File dataDir = new File(DATA_FOLDER);
         if (!dataDir.exists()) {
-            dataDir.mkdirs();
+            if (!dataDir.mkdirs()) {
+                System.err.println("Error: No se pudo crear el directorio de datos: " + DATA_FOLDER);
+            }
         }
-
         crearArchivoDesdeRecurso(PROFESORES_FILE);
         crearArchivoDesdeRecurso(SALAS_FILE);
         crearArchivoDesdeRecurso(ASIGNATURAS_FILE);
@@ -77,15 +78,11 @@ public class JsonDataManager {
     }
 
     public List<Profesor> cargarProfesores() {
-        return cargarDatos(PROFESORES_FILE, new TypeReference<List<Profesor>>() {});
-    }
-
-    public void guardarProfesores(List<Profesor> data) {
-        guardarDatos(PROFESORES_FILE, data);
+        return cargarDatos(PROFESORES_FILE, new TypeReference<>() {});
     }
 
     public List<Sala> cargarSalas() {
-        return cargarDatos(SALAS_FILE, new TypeReference<List<Sala>>() {});
+        return cargarDatos(SALAS_FILE, new TypeReference<>() {});
     }
 
     public void guardarSalas(List<Sala> data) {
@@ -93,15 +90,11 @@ public class JsonDataManager {
     }
 
     public List<Asignatura> cargarAsignaturas() {
-        return cargarDatos(ASIGNATURAS_FILE, new TypeReference<List<Asignatura>>() {});
-    }
-
-    public void guardarAsignaturas(List<Asignatura> data) {
-        guardarDatos(ASIGNATURAS_FILE, data);
+        return cargarDatos(ASIGNATURAS_FILE, new TypeReference<>() {});
     }
 
     public List<Reserva> cargarReservas() {
-        return cargarDatos(RESERVAS_FILE, new TypeReference<List<Reserva>>() {});
+        return cargarDatos(RESERVAS_FILE, new TypeReference<>() {});
     }
 
     public void guardarReservas(List<Reserva> data) {

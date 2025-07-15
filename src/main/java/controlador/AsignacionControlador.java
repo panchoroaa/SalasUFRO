@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Controlador principal que centraliza toda la lógica de negocio.
- * Actúa como intermediario entre la Vista y el Modelo/Persistencia.
- */
 public class AsignacionControlador {
 
     private final JsonDataManager dataManager;
@@ -21,7 +17,6 @@ public class AsignacionControlador {
 
     public AsignacionControlador(JsonDataManager dataManager) {
         this.dataManager = dataManager;
-        // Carga todos los datos al momento de la creación.
         this.profesores = dataManager.cargarProfesores();
         this.salas = dataManager.cargarSalas();
         this.asignaturas = dataManager.cargarAsignaturas();
@@ -35,26 +30,94 @@ public class AsignacionControlador {
     public List<Reserva> getReservas() { return reservas; }
 
     public Optional<Profesor> getProfesorPorRut(String rut) {
-        return profesores.stream()
-                .filter(p -> p.getRut().equals(rut))
-                .findFirst();
+        return profesores.stream().filter(p -> p.getRut().equals(rut)).findFirst();
     }
 
+    // CORRECCIÓN: Usar el parámetro 'nombre' correctamente.
     public Optional<Sala> getSalaPorNombre(String nombre) {
-        return salas.stream()
-                .filter(s -> s.getNombre().equals(nombre))
-                .findFirst();
+        return salas.stream().filter(s -> s.getNombre().equals(nombre)).findFirst();
     }
 
     public Optional<Asignatura> getAsignaturaPorCodigo(String codigo) {
-        return asignaturas.stream()
-                .filter(a -> a.getCodigo().equals(codigo))
-                .findFirst();
+        return asignaturas.stream().filter(a -> a.getCodigo().equals(codigo)).findFirst();
     }
 
-    public List<Reserva> getReservasPorSala(String nombreSala) {
+    public String crearAsignacion(String rutProfesor, String nombreSala, String codigoAsignatura, Horario horario) {
+        Optional<Profesor> profesorOpt = getProfesorPorRut(rutProfesor);
+        Optional<Sala> salaOpt = getSalaPorNombre(nombreSala);
+        Optional<Asignatura> asignaturaOpt = getAsignaturaPorCodigo(codigoAsignatura);
+
+        if (profesorOpt.isEmpty()) {
+            return "Error: Profesor con RUT " + rutProfesor + " no encontrado.";
+        }
+        if (salaOpt.isEmpty()) {
+            return "Error: Sala " + nombreSala + " no encontrada.";
+        }
+        if (asignaturaOpt.isEmpty()) {
+            return "Error: Asignatura con código " + codigoAsignatura + " no encontrada.";
+        }
+
+        Profesor profesor = profesorOpt.get();
+        Sala sala = salaOpt.get();
+        Asignatura asignatura = asignaturaOpt.get();
+
+        if (asignatura.getCantidadAlumnos() > sala.getCapacidad()) {
+            return "Error: La cantidad de alumnos de la asignatura (" + asignatura.getCantidadAlumnos() +
+                    ") excede la capacidad de la sala (" + sala.getCapacidad() + ").";
+        }
+
+        if (!sala.estaDisponibleEn(horario)) {
+            return "Error: La sala " + sala.getNombre() + " no está disponible en el horario " + horario.toString() +
+                    " o su estado no permite asignaciones.";
+        }
+
+        if (profesorTieneConflicto(profesor, horario)) {
+            return "Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en ese horario.";
+        }
+
+        if (!profesor.imparteAsignatura(asignatura.getCodigo())) {
+            return "Error: El profesor " + profesor.getNombre() + " no imparte la asignatura " + asignatura.getNombre() + ".";
+        }
+
+        Reserva nuevaReserva = new Reserva(profesor.getRut(), sala.getNombre(), asignatura.getCodigo(), horario);
+        reservas.add(nuevaReserva);
+        sala.agregarHorarioOcupado(horario);
+
+        dataManager.guardarReservas(reservas);
+        dataManager.guardarSalas(salas);
+
+        return "¡Asignación realizada con éxito!";
+    }
+
+    public String cancelarAsignacion(Reserva reserva) {
+        // CORRECCIÓN: Lambda de una sola expresión
+        getSalaPorNombre(reserva.getNombreSala()).ifPresent(sala -> sala.removerHorarioOcupado(reserva.getHorario()));
+
+        reservas.remove(reserva);
+
+        dataManager.guardarReservas(reservas);
+        dataManager.guardarSalas(salas);
+
+        return "¡Asignación cancelada con éxito!";
+    }
+
+    private boolean profesorTieneConflicto(Profesor profesor, Horario horario) {
         return reservas.stream()
-                .filter(r -> r.getNombreSala().equals(nombreSala))
+                .filter(r -> r.getRutProfesor().equals(profesor.getRut()))
+                .anyMatch(r -> r.getHorario().equals(horario));
+    }
+
+    // --- Métodos de Ayuda para filtrar disponibilidad ---
+    public List<Profesor> getProfesoresDisponibles(Asignatura asignatura, Horario horario) {
+        return profesores.stream()
+                .filter(p -> p.imparteAsignatura(asignatura.getCodigo()))
+                .filter(p -> !profesorTieneConflicto(p, horario))
+                .collect(Collectors.toList());
+    }
+
+    public List<Sala> getSalasDisponiblesEnHorario(Horario horario) {
+        return salas.stream()
+                .filter(s -> s.estaDisponibleEn(horario))
                 .collect(Collectors.toList());
     }
 
@@ -64,74 +127,51 @@ public class AsignacionControlador {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene una lista de profesores que imparten una asignatura dada
-     * y están disponibles en un horario específico.
-     */
-    public List<Profesor> getProfesoresDisponibles(Asignatura asignatura, Horario horario) {
-        return profesores.stream()
-                .filter(p -> p.imparteAsignatura(asignatura.getCodigo())) // Imparte la asignatura
-                .filter(p -> !profesorTieneConflicto(p, horario))         // Está disponible en ese horario
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Obtiene una lista de salas que están DISPONIBLES y libres en un horario específico.
-     */
-    public List<Sala> getSalasDisponiblesEnHorario(Horario horario) {
-        return salas.stream()
-                .filter(s -> s.getEstado() == EstadoSala.DISPONIBLE) // Estado de la sala es DISPONIBLE
-                .filter(s -> s.estaDisponibleEn(horario))             // Está libre en ese horario
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Realiza una nueva asignación de sala.
-     */
-    public String realizarAsignacion(Profesor profesor, Sala sala, Asignatura asignatura, Horario horario) {
-        // Validaciones previas (aunque muchas se manejan ahora al seleccionar elementos)
-        if (!sala.estaDisponibleEn(horario)) {
-            return "Error: La sala " + sala.getNombre() + " no está disponible en ese horario o su estado no es DISPONIBLE.";
-        }
-        if (profesorTieneConflicto(profesor, horario)) {
-            return "Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en ese horario.";
-        }
-
-        // Si todas las validaciones pasan, se crea la reserva
-        Reserva nuevaReserva = new Reserva(profesor.getRut(), sala.getNombre(), asignatura.getCodigo(), horario);
-        reservas.add(nuevaReserva);
-        sala.agregarHorarioOcupado(horario);
-
-        // Guardar cambios en la persistencia
-        dataManager.guardarReservas(reservas);
-        dataManager.guardarSalas(salas);
-
-        return "¡Asignación realizada con éxito!";
-    }
-
-    /**
-     * Cancela una reserva existente.
-     */
-    public String cancelarAsignacion(Reserva reserva) {
-        // Liberar el horario en la sala correspondiente
-        getSalaPorNombre(reserva.getNombreSala()).ifPresent(sala -> {
-            sala.removerHorarioOcupado(reserva.getHorario());
-        });
-
-        // Eliminar la reserva de la lista
-        reservas.remove(reserva);
-
-        // Guardar cambios
-        dataManager.guardarReservas(reservas);
-        dataManager.guardarSalas(salas);
-
-        return "¡Asignación cancelada con éxito!";
-    }
-
-    // --- Métodos de Ayuda Privados ---
-    private boolean profesorTieneConflicto(Profesor profesor, Horario horario) {
+    public List<Reserva> getReservasPorSala(String nombreSala) {
         return reservas.stream()
-                .filter(r -> r.getRutProfesor().equals(profesor.getRut()))
-                .anyMatch(r -> r.getHorario().equals(horario));
+                .filter(r -> r.getNombreSala().equals(nombreSala))
+                .collect(Collectors.toList());
     }
+
+    // --- MÉTODOS DE BÚSQUEDA / FILTRO (I.3) ---
+
+    public List<Profesor> buscarProfesores(String query) {
+        String lowerCaseQuery = query.toLowerCase().trim();
+        return profesores.stream()
+                .filter(p -> p.getNombre().toLowerCase().contains(lowerCaseQuery) ||
+                        p.getRut().toLowerCase().contains(lowerCaseQuery))
+                .collect(Collectors.toList());
+    }
+
+    public List<Sala> buscarSalas(String query) {
+        String lowerCaseQuery = query.toLowerCase().trim();
+        return salas.stream()
+                .filter(s -> s.getNombre().toLowerCase().contains(lowerCaseQuery))
+                .collect(Collectors.toList());
+    }
+
+    public List<Asignatura> buscarAsignaturas(String query) {
+        String lowerCaseQuery = query.toLowerCase().trim();
+        return asignaturas.stream()
+                .filter(a -> a.getNombre().toLowerCase().contains(lowerCaseQuery) ||
+                        a.getCodigo().toLowerCase().contains(lowerCaseQuery))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Filtra las reservas basándose en el profesor, sala o día de la semana.
+     * Si un parámetro es null o vacío, no se usa como filtro.
+     * @param rutProfesor Rut del profesor (opcional).
+     * @param nombreSala Nombre de la sala (opcional).
+     * @param dia Semana Día de la semana (opcional).
+     * @return Lista de reservas filtradas.
+     */
+    public List<Reserva> filtrarReservas(String rutProfesor, String nombreSala, DiaSemana dia) {
+        return reservas.stream()
+                .filter(r -> (rutProfesor == null || rutProfesor.isEmpty() || r.getRutProfesor().equalsIgnoreCase(rutProfesor)))
+                .filter(r -> (nombreSala == null || nombreSala.isEmpty() || r.getNombreSala().equalsIgnoreCase(nombreSala)))
+                .filter(r -> (dia == null || r.getHorario().getDia() == dia))
+                .collect(Collectors.toList());
+    }
+
 }
