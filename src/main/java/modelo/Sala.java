@@ -1,41 +1,86 @@
-// modelo/Sala.java
 package modelo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Sala {
-    private final String nombre;
-    private final int capacidad;
+    private String nombre;
+    private int capacidad;
+    private EstadoSala estado; // Now uses the simplified EstadoSala
+    private List<Horario> horariosOcupados; // Now a list of Horario objects
 
     public Sala(String nombre, int capacidad) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la sala no puede estar vacío");
-        }
-        if (capacidad <= 0) {
-            throw new IllegalArgumentException("La capacidad debe ser mayor que cero");
-        }
-        this.nombre = nombre.trim();
+        this.nombre = nombre;
         this.capacidad = capacidad;
+        this.estado = EstadoSala.DISPONIBLE;
+        this.horariosOcupados = new ArrayList<>();
+    }
+    // Constructor sin argumentos necesario para la deserialización con Jackson.
+    public Sala() {
+        this.horariosOcupados = new ArrayList<>();
     }
 
+    // --- Getters y Setters ---
     public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
     public int getCapacidad() { return capacidad; }
+    public void setCapacidad(int capacidad) { this.capacidad = capacidad; }
+
+    public EstadoSala getEstado() { return estado; }
+    public void setEstado(EstadoSala estado) { this.estado = estado; }
+
+    public List<Horario> getHorariosOcupados() { return horariosOcupados; }
+    public void setHorariosOcupados(List<Horario> horariosOcupados) { this.horariosOcupados = horariosOcupados; }
+
+    // --- Métodos de Lógica de Negocio ---
+    /**
+     * Verifica la disponibilidad de la sala considerando su estado y si el horario ya está en la lista de ocupados.
+     * @param horario El horario a verificar.
+     * @return true si está disponible, false en caso contrario.
+     */
+    public boolean estaDisponibleEn(Horario horario) {
+        // Updated logic based on EstadoSala enum values
+        if (this.estado != EstadoSala.DISPONIBLE) {
+            return false;
+        }
+        return this.horariosOcupados.stream().noneMatch(h -> h.equals(horario));
+    }
+
+    /**
+     * Agrega un horario a la lista de horarios ocupados.
+     * @param horario El horario a agregar.
+     */
+    public void agregarHorarioOcupado(Horario horario) {
+        if (!horariosOcupados.contains(horario)) {
+            horariosOcupados.add(horario);
+        }
+    }
+
+    /**
+     * Remueve un horario de la lista de horarios ocupados.
+     * @param horario El horario a remover.
+     */
+    public void removerHorarioOcupado(Horario horario) {
+        horariosOcupados.remove(horario);
+    }
 
     @Override
     public String toString() {
-        return String.format("Sala {nombre='%s', capacidad=%d}", getNombre(), getCapacidad());
+        return String.format("Sala: %-15s | Capacidad: %-3d | Estado: %s", nombre, capacidad, estado);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Sala otra = (Sala) o;
-        return nombre.equalsIgnoreCase(otra.nombre);
+        Sala sala = (Sala) o;
+        return Objects.equals(nombre, sala.nombre); // Assuming name is unique identifier for Sala
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nombre.toLowerCase());
+        return Objects.hash(nombre);
     }
 }

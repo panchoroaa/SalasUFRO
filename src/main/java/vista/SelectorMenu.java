@@ -1,15 +1,14 @@
 package vista;
 
-import controlador.AsignacionControlador;
-import controlador.ProfesorControlador;
-import controlador.SalaControlador;
-import controlador.CheckReserva;
 import modelo.Asignatura;
-import modelo.BloqueHorario;
 import modelo.Profesor;
 import modelo.Sala;
-import modelo.EstadoSala;
-import controlador.SelectorBloqueHorario; // Asumiendo que esta clase sigue existiendo
+import modelo.EstadoSala; // Make sure this is imported if used directly
+import controlador.ProfesorControlador;
+import controlador.SalaControlador;
+import controlador.AsignaturaControlador; // New AsignaturaController
+import controlador.AsignacionControlador;
+// import controlador.CheckReserva; // Only if you need it here, but AsignacionControlador has it
 
 import java.util.List;
 import java.util.Scanner;
@@ -20,484 +19,141 @@ public class SelectorMenu {
     private final Scanner scanner;
     private final ProfesorControlador profesorControlador;
     private final SalaControlador salaControlador;
+    private final AsignaturaControlador asignaturaControlador; // New
     private final AsignacionControlador asignacionControlador;
-    private final CheckReserva checkReserva; // Asegúrate de que esta instancia se pasa correctamente
+    // private final CheckReserva checkReserva; // Removed as AsignacionControlador handles checks directly
 
     public SelectorMenu(Scanner scanner,
                         ProfesorControlador profesorControlador,
                         SalaControlador salaControlador,
-                        AsignacionControlador asignacionControlador,
-                        CheckReserva checkReserva) {
+                        AsignaturaControlador asignaturaControlador, // Add AsignaturaController
+                        AsignacionControlador asignacionControlador) { // CheckReserva is removed for simplicity here
         this.scanner = scanner;
         this.profesorControlador = profesorControlador;
         this.salaControlador = salaControlador;
+        this.asignaturaControlador = asignaturaControlador; // Assign new controller
         this.asignacionControlador = asignacionControlador;
-        this.checkReserva = checkReserva;
+        // this.checkReserva = checkReserva; // Not directly used here, implied via AsignacionControlador
     }
 
-    public void mostrarMenuPrincipal() {
-        int opcion;
-        do {
-            System.out.println("\n--- Menú Principal ---");
-            System.out.println("1. Gestión de Profesores");
-            System.out.println("2. Gestión de Salas");
-            System.out.println("3. Asignación de Salas");
-            System.out.println("4. Listar Asignaciones");
-            System.out.println("5. Cancelar Asignación");
-            System.out.println("0. Salir");
-            System.out.print("Seleccione una opción: ");
-            opcion = leerOpcion();
+    // --- Menus for each entity management ---
 
-            switch (opcion) {
-                case 1: mostrarMenuProfesores(); break;
-                case 2: mostrarMenuSalas(); break;
-                case 3: realizarAsignacionFlow(); break;
-                case 4: asignacionControlador.listarAsignaciones(); break;
-                case 5: cancelarAsignacionFlow(); break;
-                case 0: System.out.println("Saliendo del programa. ¡Hasta luego!"); break;
-                default: System.out.println("Opción no válida. Intente de nuevo.");
-            }
-        } while (opcion != 0);
-    }
-
-    private void mostrarMenuProfesores() {
+    public void mostrarMenuProfesores() {
         int opcion;
         do {
             System.out.println("\n--- Gestión de Profesores ---");
-            System.out.println("1. Registrar Profesor");
+            System.out.println("1. Crear Profesor");
             System.out.println("2. Listar Profesores");
             System.out.println("3. Actualizar Profesor");
             System.out.println("4. Eliminar Profesor");
-            System.out.println("5. Asignar Asignatura a Profesor");
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Seleccione una opción: ");
-            opcion = leerOpcion();
+
+            opcion = leerOpcion(); // Use common leerOpcion
 
             switch (opcion) {
-                case 1: registrarProfesorFlow(); break;
-                case 2: profesorControlador.listarProfesores(); break;
-                case 3: actualizarProfesorFlow(); break;
-                case 4: eliminarProfesorFlow(); break;
-                case 5: asignarAsignaturaAProfesorFlow(); break;
-                case 0: break;
-                default: System.out.println("Opción no válida. Intente de nuevo.");
+                case 1:
+                    profesorControlador.crearProfesor(); // Delegate
+                    break;
+                case 2:
+                    profesorControlador.listarProfesores(); // Delegate
+                    break;
+                case 3:
+                    profesorControlador.actualizarProfesor(); // Delegate
+                    break;
+                case 4:
+                    profesorControlador.eliminarProfesor(); // Delegate
+                    break;
+                case 0:
+                    System.out.println("Volviendo al Menú Principal de Gestión...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente de nuevo.");
             }
         } while (opcion != 0);
     }
 
-    private void mostrarMenuSalas() {
+    public void mostrarMenuSalas() {
         int opcion;
         do {
             System.out.println("\n--- Gestión de Salas ---");
-            System.out.println("1. Registrar Sala");
+            System.out.println("1. Crear Sala");
             System.out.println("2. Listar Salas");
-            System.out.println("3. Actualizar Estado de Sala");
+            System.out.println("3. Actualizar Sala");
             System.out.println("4. Eliminar Sala");
             System.out.println("0. Volver al Menú Principal");
             System.out.print("Seleccione una opción: ");
+
             opcion = leerOpcion();
 
             switch (opcion) {
-                case 1: registrarSalaFlow(); break;
-                case 2: salaControlador.listarSalas(); break;
-                case 3: actualizarEstadoSalaFlow(); break;
-                case 4: eliminarSalaFlow(); break;
-                case 0: break;
-                default: System.out.println("Opción no válida. Intente de nuevo.");
+                case 1:
+                    salaControlador.crearSala(); // Delegate
+                    break;
+                case 2:
+                    salaControlador.listarSalas(); // Delegate
+                    break;
+                case 3:
+                    salaControlador.actualizarSala(); // Delegate
+                    break;
+                case 4:
+                    salaControlador.eliminarSala(); // Delegate
+                    break;
+                case 0:
+                    System.out.println("Volviendo al Menú Principal de Gestión...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente de nuevo.");
             }
         } while (opcion != 0);
     }
 
-    private void registrarProfesorFlow() {
-        System.out.println("\n=== Registro de Profesor ===");
-        String nombre = solicitarNombreProfesor();
-        if (nombre == null) { mostrarCancelacionOperacion("Registro de profesor"); return; }
+    public void mostrarMenuAsignaturas() {
+        int opcion;
+        do {
+            System.out.println("\n--- Gestión de Asignaturas ---");
+            System.out.println("1. Crear Asignatura");
+            System.out.println("2. Listar Asignaturas");
+            System.out.println("3. Actualizar Asignatura");
+            System.out.println("4. Eliminar Asignatura");
+            System.out.println("0. Volver al Menú Principal");
+            System.out.print("Seleccione una opción: ");
 
-        String rut = solicitarRutProfesor();
-        if (rut == null) { mostrarCancelacionOperacion("Registro de profesor"); return; }
+            opcion = leerOpcion();
 
-        // CORRECCIÓN: Usar buscarProfesorPorRut
-        if (profesorControlador.buscarProfesorPorRut(rut) != null) {
-            System.out.println("Error: Ya existe un profesor con este RUT. Ingrese uno diferente.");
-            return;
-        }
-
-        String departamento = solicitarDepartamentoProfesor();
-        if (departamento == null) { mostrarCancelacionOperacion("Registro de profesor"); return; }
-
-        Profesor nuevoProfesor = profesorControlador.crearProfesor(nombre, rut, departamento);
-        if (nuevoProfesor != null) {
-            mostrarMensajeExito("Profesor registrado exitosamente:\n" + nuevoProfesor.toString());
-        } else {
-            mostrarMensajeError("Error al registrar el profesor.");
-        }
+            switch (opcion) {
+                case 1:
+                    asignaturaControlador.crearAsignatura(); // Delegate
+                    break;
+                case 2:
+                    asignaturaControlador.listarAsignaturas(); // Delegate
+                    break;
+                case 3:
+                    asignaturaControlador.actualizarAsignatura(); // Delegate
+                    break;
+                case 4:
+                    asignaturaControlador.eliminarAsignatura(); // Delegate
+                    break;
+                case 0:
+                    System.out.println("Volviendo al Menú Principal de Gestión...");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente de nuevo.");
+            }
+        } while (opcion != 0);
     }
 
-    private void actualizarProfesorFlow() {
-        System.out.println("\n=== Actualizar Profesor ===");
-        profesorControlador.listarProfesores();
-        if (profesorControlador.getProfesoresRegistrados().isEmpty()) {
-            mostrarNoHayElementosPara("profesores para actualizar");
-            return;
-        }
-
-        String rut = solicitarRutProfesor();
-        if (rut == null) { mostrarCancelacionOperacion("Actualización de profesor"); return; }
-
-        // CORRECCIÓN: Usar buscarProfesorPorRut
-        Profesor profesorAActualizar = profesorControlador.buscarProfesorPorRut(rut);
-        if (profesorAActualizar == null) {
-            System.out.println("Error: No se encontró un profesor con el RUT especificado.");
-            return;
-        }
-
-        System.out.println("Profesor encontrado: " + profesorAActualizar.getNombre());
-        System.out.println("Ingrese el nuevo nombre (deje vacío para mantener el actual):");
-        String nuevoNombre = scanner.nextLine().trim();
-
-        System.out.println("Ingrese el nuevo departamento (deje vacío para mantener el actual):");
-        String nuevoDepartamento = scanner.nextLine().trim();
-
-        boolean actualizado = profesorControlador.actualizarProfesor(profesorAActualizar, nuevoNombre, nuevoDepartamento);
-        if (actualizado) {
-            mostrarMensajeExito("Profesor actualizado exitosamente.");
-        } else {
-            mostrarMensajeError("No se pudo actualizar el profesor.");
-        }
-    }
-
-    private void eliminarProfesorFlow() {
-        System.out.println("\n=== Eliminar Profesor ===");
-        profesorControlador.listarProfesores();
-        if (profesorControlador.getProfesoresRegistrados().isEmpty()) {
-            mostrarNoHayElementosPara("profesores para eliminar");
-            return;
-        }
-
-        String rutAEliminar = solicitarRutProfesor();
-        if (rutAEliminar == null) { mostrarCancelacionOperacion("Eliminación de profesor"); return; }
-
-        // CORRECCIÓN: Usar buscarProfesorPorRut
-        Profesor profesorAEliminar = profesorControlador.buscarProfesorPorRut(rutAEliminar);
-        if (profesorAEliminar == null) {
-            System.out.println("Error: No se encontró un profesor con el RUT especificado.");
-            return;
-        }
-
-        // CORRECCIÓN: Usar asignacionControlador
-        if (asignacionControlador.profesorTieneReservasActivas(profesorAEliminar)) {
-            mostrarMensajeError("Error: No se puede eliminar el profesor porque tiene asignaciones activas.");
-            return;
-        }
-
-        boolean eliminado = profesorControlador.eliminarProfesor(rutAEliminar);
-        if (eliminado) {
-            mostrarMensajeExito("Profesor eliminado exitosamente.");
-        } else {
-            mostrarMensajeError("Error inesperado al eliminar el profesor.");
-        }
-    }
-
-    private void asignarAsignaturaAProfesorFlow() {
-        System.out.println("\n=== Asignar Asignatura a Profesor ===");
-        profesorControlador.listarProfesores();
-        if (profesorControlador.getProfesoresRegistrados().isEmpty()) {
-            mostrarNoHayElementosPara("profesores para asignar asignaturas");
-            return;
-        }
-
-        String rut = solicitarRutProfesor();
-        if (rut == null) { mostrarCancelacionOperacion("Asignación de asignatura"); return; }
-
-        Profesor profesor = profesorControlador.buscarProfesorPorRut(rut);
-        if (profesor == null) {
-            System.out.println("Error: No se encontró un profesor con el RUT especificado.");
-            return;
-        }
-
-        System.out.println("Asignaturas que el profesor " + profesor.getNombre() + " ya imparte:");
-        if (profesor.getAsignaturasImpartidas().isEmpty()) {
-            System.out.println("  Ninguna.");
-        } else {
-            profesor.getAsignaturasImpartidas().forEach(a -> System.out.println("  - " + a.getNombre() + " (" + a.getCodigo() + ")"));
-        }
-
-        List<Asignatura> todasAsignaturas = profesorControlador.getTodasLasAsignaturasDisponibles();
-        if (todasAsignaturas.isEmpty()) {
-            mostrarNoHayElementosPara("asignaturas disponibles");
-            return;
-        }
-
-        List<Asignatura> asignaturasDisponibles = profesorControlador.getAsignaturasDisponiblesParaAsignar(profesor, todasAsignaturas);
-        if (asignaturasDisponibles.isEmpty()) {
-            System.out.println("No hay más asignaturas disponibles para asignar a este profesor.");
-            return;
-        }
-
-        System.out.println("\nAsignaturas disponibles para asignar:");
-        for (int i = 0; i < asignaturasDisponibles.size(); i++) {
-            System.out.printf("%d. %s (%s) - %d alumnos%n",
-                    i + 1, asignaturasDisponibles.get(i).getNombre(),
-                    asignaturasDisponibles.get(i).getCodigo(),
-                    asignaturasDisponibles.get(i).getCantidadAlumnos());
-        }
-
-        int seleccionAsignatura = solicitarSeleccion("Seleccione la asignatura a asignar (0 para cancelar):", asignaturasDisponibles.size());
-        if (seleccionAsignatura == 0) { mostrarCancelacionOperacion("Asignación de asignatura"); return; }
-
-        Asignatura asignaturaAAsignar = asignaturasDisponibles.get(seleccionAsignatura - 1);
-
-        boolean asignado = profesorControlador.asignarAsignaturaAProfesor(profesor, asignaturaAAsignar);
-        if (asignado) {
-            mostrarMensajeExito("Asignatura asignada exitosamente.");
-        } else {
-            mostrarMensajeError("Error: El profesor ya imparte esta asignatura o hubo un error inesperado.");
-        }
-    }
-
-    private void registrarSalaFlow() {
-        System.out.println("\n=== Registro de Sala ===");
-        String nombre = solicitarNombreSala();
-        if (nombre == null) { mostrarCancelacionOperacion("Registro de sala"); return; }
-
-        // CORRECCIÓN: Usar buscarSalaPorNombre
-        if (salaControlador.buscarSalaPorNombre(nombre) != null) {
-            System.out.println("Error: Ya existe una sala con este nombre. Ingrese uno diferente.");
-            return;
-        }
-
-        Integer capacidad = solicitarCapacidadSala();
-        if (capacidad == null) { mostrarCancelacionOperacion("Registro de sala"); return; }
-
-        Sala nuevaSala = salaControlador.crearSala(nombre, capacidad);
-        if (nuevaSala != null) {
-            mostrarMensajeExito("Sala registrada exitosamente:\n" + nuevaSala.toString());
-        } else {
-            mostrarMensajeError("Error al registrar la sala.");
-        }
-    }
-
-    private void actualizarEstadoSalaFlow() {
-        System.out.println("\n=== Actualizar Estado de Sala ===");
-        salaControlador.listarSalas();
-        if (salaControlador.getSalasRegistradasPuras().isEmpty()) { // Usar getSalasRegistradasPuras
-            mostrarNoHayElementosPara("salas para actualizar su estado");
-            return;
-        }
-
-        String nombreSala = solicitarNombreSala();
-        if (nombreSala == null) { mostrarCancelacionOperacion("Actualización de estado de sala"); return; }
-
-        // CORRECCIÓN: Usar buscarSalaPorNombre
-        Sala salaAActualizar = salaControlador.buscarSalaPorNombre(nombreSala);
-        if (salaAActualizar == null) {
-            System.out.println("Error: No se encontró una sala con el nombre especificado.");
-            return;
-        }
-
-        System.out.println("Estado actual de " + salaAActualizar.getNombre() + ": " + salaControlador.getEstadoSala(salaAActualizar));
-        System.out.println("Seleccione el nuevo estado:");
-        System.out.println("1. DISPONIBLE");
-        System.out.println("2. EN_MANTENIMIENTO");
-        System.out.println("0. Cancelar");
-        int opcionEstado = leerOpcion();
-
-        EstadoSala nuevoEstado = null;
-        switch (opcionEstado) {
-            case 1: nuevoEstado = EstadoSala.DISPONIBLE; break;
-            case 2: nuevoEstado = EstadoSala.MANTENIMIENTO; break;
-            case 0: mostrarCancelacionOperacion("Actualización de estado de sala"); return;
-            default: System.out.println("Opción de estado no válida."); return;
-        }
-        if (nuevoEstado == null) {
-            System.out.println("Selección de estado no válida. Intente de nuevo.");
-            return;
-        }
-
-        boolean actualizado = salaControlador.actualizarEstadoSala(salaAActualizar, nuevoEstado);
-        if (actualizado) {
-            mostrarMensajeExito("Estado de sala actualizado exitosamente.");
-        } else {
-            mostrarMensajeError("No se pudo actualizar el estado de la sala.");
-        }
-    }
-
-    private void eliminarSalaFlow() {
-        System.out.println("\n=== Eliminar Sala ===");
-        salaControlador.listarSalas();
-        if (salaControlador.getSalasRegistradasPuras().isEmpty()) { // Usar getSalasRegistradasPuras
-            mostrarNoHayElementosPara("salas para eliminar");
-            return;
-        }
-
-        String nombreAEliminar = solicitarNombreSala();
-        if (nombreAEliminar == null) { mostrarCancelacionOperacion("Eliminación de sala"); return; }
-
-        // CORRECCIÓN: Usar buscarSalaPorNombre
-        Sala salaAEliminar = salaControlador.buscarSalaPorNombre(nombreAEliminar);
-        if (salaAEliminar == null) {
-            System.out.println("Error: No se encontró una sala con el nombre especificado.");
-            return;
-        }
-
-        // CORRECCIÓN: Usar asignacionControlador
-        if (asignacionControlador.salaTieneReservasActivas(salaAEliminar)) {
-            mostrarMensajeError("Error: No se puede eliminar la sala porque tiene asignaciones activas.");
-            return;
-        }
-
-        boolean eliminado = salaControlador.eliminarSala(nombreAEliminar);
-        if (eliminado) {
-            mostrarMensajeExito("Sala eliminada exitosamente.");
-        } else {
-            mostrarMensajeError("Error inesperado al eliminar la sala.");
-        }
-    }
-
-    private void realizarAsignacionFlow() {
-        System.out.println("\n=== Realizar Asignación de Sala ===");
-
-        List<Profesor> profesores = profesorControlador.getProfesoresRegistrados();
-        if (profesores.isEmpty()) { mostrarNoHayElementosPara("profesores para asignar salas"); return; }
-        Profesor profesor = seleccionarProfesorDeLista(profesores, "asignar sala");
-        if (profesor == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-
-        List<Asignatura> asignaturasProfesor = profesorControlador.getAsignaturasImpartidasPorProfesor(profesor);
-        if (asignaturasProfesor.isEmpty()) { System.out.println("Error: El profesor seleccionado no imparte asignaturas. No se puede realizar la asignación."); return; }
-        Asignatura asignatura = seleccionarAsignaturaDeLista(asignaturasProfesor, "asignar sala");
-        if (asignatura == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-
-        List<Sala> salas = salaControlador.getSalasRegistradasPuras(); // Usar getSalasRegistradasPuras
-        if (salas.isEmpty()) { mostrarNoHayElementosPara("salas para asignar"); return; }
-        List<Sala> salasConCapacidad = salas.stream()
-                .filter(s -> s.getCapacidad() >= asignatura.getCantidadAlumnos())
-                .collect(Collectors.toList());
-
-        if (salasConCapacidad.isEmpty()) { System.out.println("No hay salas disponibles con capacidad suficiente para " + asignatura.getCantidadAlumnos() + " alumnos."); return; }
-        Sala sala = seleccionarSalaDeLista(salasConCapacidad, "asignar");
-        if (sala == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-
-        String dia = solicitarDiaSemana();
-        if (dia == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-        BloqueHorario bloque = SelectorBloqueHorario.seleccionarBloqueConOpcionCancelar();
-        if (bloque == null) { mostrarCancelacionOperacion("Asignación de sala"); return; }
-
-        // CORRECCIÓN: Usar bloque.toString()
-        if (!checkReserva.salaEstaDisponible(sala, dia, bloque)) {
-            mostrarMensajeError("Error: La sala " + sala.getNombre() + " no está disponible en el horario " + dia + " " + bloque.toString() + " o está en mantenimiento.");
-            return;
-        }
-        // CORRECCIÓN: Usar bloque.toString()
-        if (checkReserva.profesorTieneConflictoHorario(profesor, dia, bloque)) {
-            mostrarMensajeError("Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en el horario " + dia + " " + bloque.toString() + ".");
-            return;
-        }
-
-        String resultado = asignacionControlador.realizarAsignacion(profesor, sala, asignatura, dia, bloque);
-        System.out.println(resultado);
-    }
-
-    private void cancelarAsignacionFlow() {
-        System.out.println("\n=== Cancelar Asignación de Sala ===");
-        List<String> asignaciones = asignacionControlador.getReservasParaUI();
-        if (asignaciones.isEmpty()) {
-            mostrarNoHayElementosPara("asignaciones para cancelar");
-            return;
-        }
-
-        for (int i = 0; i < asignaciones.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, asignaciones.get(i));
-        }
-
-        int index = solicitarSeleccion("Seleccione el número de la asignación a cancelar (0 para cancelar):", asignaciones.size());
-        if (index == 0) { mostrarCancelacionOperacion("Cancelación de asignación"); return; }
-
-        String resultado = asignacionControlador.cancelarAsignacion(index - 1);
-        System.out.println(resultado);
-    }
-
+    // Common helper methods for reading input
     private int leerOpcion() {
-        while (true) {
-            try {
-                System.out.print("Seleccione una opción: ");
-                int opcion = scanner.nextInt();
-                scanner.nextLine();
-                return opcion;
-            } catch (InputMismatchException e) {
-                System.out.println("Entrada no válida. Por favor, ingrese un número.");
-                scanner.nextLine();
-            }
+        try {
+            int opcion = scanner.nextInt();
+            scanner.nextLine(); // Consumir newline
+            return opcion;
+        } catch (InputMismatchException e) {
+            System.out.println("Entrada inválida. Por favor, ingrese un número.");
+            scanner.nextLine(); // Clear the invalid input
+            return -1; // Indicate invalid option
         }
-    }
-
-    private String solicitarNombreProfesor() { return solicitarEntrada("Ingrese el nombre del profesor (0 para cancelar): "); }
-    private String solicitarRutProfesor() { return solicitarEntrada("Ingrese el RUT del profesor (ej. 12345678-9) (0 para cancelar): "); }
-    private String solicitarDepartamentoProfesor() { return solicitarEntrada("Ingrese el departamento del profesor (0 para cancelar): "); }
-    private String solicitarNombreSala() { return solicitarEntrada("Ingrese el nombre de la sala (0 para cancelar): "); }
-    private Integer solicitarCapacidadSala() {
-        while (true) {
-            String input = solicitarEntrada("Ingrese la capacidad de la sala (número entero positivo, 0 para cancelar): ");
-            if (input == null) return null;
-            try {
-                int capacidad = Integer.parseInt(input);
-                if (capacidad > 0) return capacidad;
-                System.out.println("La capacidad debe ser un número positivo.");
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada no válida. Por favor, ingrese un número entero.");
-            }
-        }
-    }
-    private String solicitarDiaSemana() {
-        while (true) {
-            System.out.println("Ingrese el día de la semana (LUNES, MARTES, etc. o 0 para cancelar):");
-            String dia = scanner.nextLine().trim().toUpperCase();
-            if (dia.equals("0")) return null;
-            if (List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO").contains(dia)) {
-                return dia;
-            }
-            System.out.println("Día no válido. Por favor, ingrese un día de la semana válido.");
-        }
-    }
-
-    private String solicitarEntrada(String mensaje) {
-        System.out.print(mensaje);
-        String entrada = scanner.nextLine().trim();
-        if (entrada.equals("0")) {
-            return null;
-        }
-        return entrada;
-    }
-
-    private <T> T seleccionarProfesorDeLista(List<T> lista, String accion) {
-        profesorControlador.listarProfesores(); // Mostrar la lista completa antes de pedir selección
-        return seleccionarElementoDeLista(lista, "profesor para " + accion);
-    }
-
-    private <T> T seleccionarAsignaturaDeLista(List<T> lista, String accion) {
-        if (lista.isEmpty()) {
-            System.out.println("No hay asignaturas disponibles.");
-            return null;
-        }
-        System.out.println("\n--- Asignaturas Disponibles ---");
-        for (int i = 0; i < lista.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, lista.get(i).toString());
-        }
-        return seleccionarElementoDeLista(lista, "asignatura para " + accion);
-    }
-
-    private <T> T seleccionarSalaDeLista(List<T> lista, String accion) {
-        salaControlador.listarSalas(); // Mostrar la lista completa antes de pedir selección
-        return seleccionarElementoDeLista(lista, "sala para " + accion);
-    }
-
-    private <T> T seleccionarElementoDeLista(List<T> lista, String tipoElemento) {
-        if (lista.isEmpty()) {
-            mostrarNoHayElementosPara(tipoElemento);
-            return null;
-        }
-        int seleccion = solicitarSeleccion("Seleccione el número del " + tipoElemento + " (0 para cancelar):", lista.size());
-        if (seleccion == 0) { return null; }
-        return lista.get(seleccion - 1);
     }
 
     private int solicitarSeleccion(String mensaje, int maxOpcion) {
@@ -525,13 +181,5 @@ public class SelectorMenu {
 
     private void mostrarMensajeError(String mensaje) {
         System.err.println("\nERROR: " + mensaje);
-    }
-
-    private void mostrarCancelacionOperacion(String operacion) {
-        System.out.println("Operación de " + operacion + " cancelada.");
-    }
-
-    private void mostrarNoHayElementosPara(String tipo) {
-        System.out.println("No hay " + tipo + " registrados.");
     }
 }

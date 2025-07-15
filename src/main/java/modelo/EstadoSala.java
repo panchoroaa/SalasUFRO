@@ -2,7 +2,7 @@ package modelo;
 
 public enum EstadoSala {
     DISPONIBLE("Disponible"),
-    MANTENIMIENTO("Mantenimiento");
+    NO_DISPONIBLE("No Disponible");
 
     private final String descripcion;
 

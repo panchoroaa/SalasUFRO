@@ -9,14 +9,14 @@ public class Profesor {
     private String nombre;
     private String rut;
     private String departamento;
-    private String ID;
+    private String id;
     private List<Asignatura> asignaturasImpartidas;
 
-    public Profesor(String nombre, String rut, String departamento, String ID) {
+    public Profesor(String nombre, String rut, String departamento, String id) {
         this.nombre = nombre;
         this.rut = rut;
         this.departamento = departamento;
-        this.ID = (ID == null || ID.isEmpty()) ? UUID.randomUUID().toString() : ID;
+        this.id = (id == null || id.isEmpty()) ? UUID.randomUUID().toString() : id;
         this.asignaturasImpartidas = new ArrayList<>();
     }
 
@@ -24,64 +24,28 @@ public class Profesor {
         this.asignaturasImpartidas = new ArrayList<>();
     }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public String getRut() { return rut; }
+    public void setRut(String rut) { this.rut = rut; }
 
-    public String getRut() {
-        return rut;
-    }
+    public String getDepartamento() { return departamento; }
+    public void setDepartamento(String departamento) { this.departamento = departamento; }
 
-    public void setRut(String rut) {
-        this.rut = rut;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getDepartamento() {
-        return departamento;
-    }
+    public List<Asignatura> getAsignaturasImpartidas() { return asignaturasImpartidas; }
+    public void setAsignaturasImpartidas(List<Asignatura> asignaturasImpartidas) { this.asignaturasImpartidas = asignaturasImpartidas; }
 
-    public void setDepartamento(String departamento) {
-        this.departamento = departamento;
-    }
-
-    public String getID() {
-        return ID;
-    }
-
-    public void setID(String ID) {
-        this.ID = ID;
-    }
-
-    public List<Asignatura> getAsignaturasImpartidas() {
-        return asignaturasImpartidas;
-    }
-
-    public void setAsignaturasImpartidas(List<Asignatura> asignaturasImpartidas) {
-        this.asignaturasImpartidas = new ArrayList<>(asignaturasImpartidas);
-    }
-
-    public boolean tieneAsignatura(String codigoAsignatura) {
-        return asignaturasImpartidas.stream()
-                .anyMatch(a -> a.getCodigo().equalsIgnoreCase(codigoAsignatura));
-    }
-
-    public void agregarAsignatura(Asignatura asignatura) {
-        if (!tieneAsignatura(asignatura.getCodigo())) {
-            this.asignaturasImpartidas.add(asignatura);
-        }
-    }
-
-    public void removerAsignatura(String codigoAsignatura) {
-        this.asignaturasImpartidas.removeIf(a -> a.getCodigo().equalsIgnoreCase(codigoAsignatura));
+    public boolean imparteAsignatura(String codigoAsignatura) {
+        return asignaturasImpartidas.stream().anyMatch(a -> a.getCodigo().equalsIgnoreCase(codigoAsignatura));
     }
 
     @Override
     public String toString() {
-        return "Profesor [ID=" + ID + ", Nombre=" + nombre + ", RUT=" + rut + ", Departamento=" + departamento + "]";
+        return String.format("Profesor: %-25s | RUT: %-12s | Depto: %s", nombre, rut, departamento);
     }
 
     @Override

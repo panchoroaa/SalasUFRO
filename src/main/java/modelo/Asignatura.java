@@ -13,35 +13,20 @@ public class Asignatura {
         this.cantidadAlumnos = cantidadAlumnos;
     }
 
-    public Asignatura() {} // Constructor para Jackson
+    public Asignatura() {}
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getCodigo() {
-        return codigo;
-    }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
 
-    public int getCantidadAlumnos() {
-        return cantidadAlumnos;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
-    }
-
-    public void setCantidadAlumnos(int cantidadAlumnos) {
-        this.cantidadAlumnos = cantidadAlumnos;
-    }
+    public int getCantidadAlumnos() { return cantidadAlumnos; }
+    public void setCantidadAlumnos(int cantidadAlumnos) { this.cantidadAlumnos = cantidadAlumnos; }
 
     @Override
     public String toString() {
-        return nombre + " (" + codigo + ", " + cantidadAlumnos + " alumnos)";
+        return String.format("Asignatura: %-30s | Código: %-10s | Alumnos: %d", nombre, codigo, cantidadAlumnos);
     }
 
     @Override
