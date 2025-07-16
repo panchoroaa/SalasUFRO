@@ -24,7 +24,7 @@ public enum BloqueHorario {
         this.horaFin = horaFin;
     }
 
-    public int getNumeroBloque() { // Este método es atómico: solo devuelve el número
+    public int getNumeroBloque() {
         return numeroBloque;
     }
 
@@ -41,7 +41,6 @@ public enum BloqueHorario {
         return "Bloque " + numeroBloque + " (" + horaInicio + " - " + horaFin + ")";
     }
 
-    // Método atómico: busca un BloqueHorario por su número
     public static Optional<BloqueHorario> fromNumeroBloque(int numero) {
         return Arrays.stream(BloqueHorario.values())
                 .filter(b -> b.numeroBloque == numero)

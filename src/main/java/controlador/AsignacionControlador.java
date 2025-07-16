@@ -29,15 +29,15 @@ public class AsignacionControlador {
     public List<Reserva> getReservas() { return reservas; }
 
     public Optional<Profesor> getProfesorPorRut(String rut) {
-        return profesores.stream().filter(p -> p.getRut().equals(rut)).findFirst();
+        return profesores.stream().filter(p -> p != null && p.getRut().equals(rut)).findFirst();
     }
 
     public Optional<Sala> getSalaPorNombre(String nombre) {
-        return salas.stream().filter(s -> s.getNombre().equals(nombre)).findFirst();
+        return salas.stream().filter(s -> s != null && s.getNombre().equals(nombre)).findFirst();
     }
 
     public Optional<Asignatura> getAsignaturaPorCodigo(String codigo) {
-        return asignaturas.stream().filter(a -> a.getCodigo().equals(codigo)).findFirst();
+        return asignaturas.stream().filter(a -> a != null && a.getCodigo().equals(codigo)).findFirst();
     }
 
     public String crearAsignacion(String rutProfesor, String nombreSala, String codigoAsignatura, Horario horario) {
@@ -59,6 +59,10 @@ public class AsignacionControlador {
         Sala sala = salaOpt.get();
         Asignatura asignatura = asignaturaOpt.get();
 
+        if (!profesor.imparteAsignatura(asignatura.getCodigo())) {
+            return "Error: El profesor " + profesor.getNombre() + " no imparte la asignatura " + asignatura.getNombre() + ".";
+        }
+
         if (asignatura.getCantidadAlumnos() > sala.getCapacidad()) {
             return "Error: La cantidad de alumnos de la asignatura (" + asignatura.getCantidadAlumnos() +
                     ") excede la capacidad de la sala (" + sala.getCapacidad() + ").";
@@ -73,10 +77,6 @@ public class AsignacionControlador {
             return "Error: El profesor " + profesor.getNombre() + " ya tiene una asignación en ese horario.";
         }
 
-        if (!profesor.imparteAsignatura(asignatura.getCodigo())) {
-            return "Error: El profesor " + profesor.getNombre() + " no imparte la asignatura " + asignatura.getNombre() + ".";
-        }
-
         Reserva nuevaReserva = new Reserva(profesor.getRut(), sala.getNombre(), asignatura.getCodigo(), horario);
         reservas.add(nuevaReserva);
         sala.agregarHorarioOcupado(horario);
@@ -89,7 +89,13 @@ public class AsignacionControlador {
 
     public String cancelarAsignacion(Reserva reserva) {
         getSalaPorNombre(reserva.getNombreSala()).ifPresent(sala -> sala.removerHorarioOcupado(reserva.getHorario()));
-        reservas.remove(reserva);
+
+        boolean removido = reservas.remove(reserva);
+
+        if (!removido) {
+            return "Error: La asignación no fue encontrada para cancelar.";
+        }
+
         dataManager.guardarReservas(reservas);
         dataManager.guardarSalas(salas);
         return "¡Asignación cancelada con éxito!";
@@ -97,31 +103,34 @@ public class AsignacionControlador {
 
     private boolean profesorTieneConflicto(Profesor profesor, Horario horario) {
         return reservas.stream()
+                .filter(r -> r != null && r.getRutProfesor() != null && r.getHorario() != null)
                 .filter(r -> r.getRutProfesor().equals(profesor.getRut()))
                 .anyMatch(r -> r.getHorario().equals(horario));
     }
 
     public List<Profesor> getProfesoresDisponibles(Asignatura asignatura, Horario horario) {
         return profesores.stream()
-                .filter(p -> p.imparteAsignatura(asignatura.getCodigo()))
+                .filter(p -> p != null && p.imparteAsignatura(asignatura.getCodigo()))
                 .filter(p -> !profesorTieneConflicto(p, horario))
                 .collect(Collectors.toList());
     }
 
     public List<Sala> getSalasDisponiblesEnHorario(Horario horario) {
         return salas.stream()
-                .filter(s -> s.estaDisponibleEn(horario))
+                .filter(s -> s != null && s.estaDisponibleEn(horario))
                 .collect(Collectors.toList());
     }
 
     public List<Reserva> getReservasPorProfesor(String rutProfesor) {
         return reservas.stream()
+                .filter(r -> r != null && r.getRutProfesor() != null)
                 .filter(r -> r.getRutProfesor().equals(rutProfesor))
                 .collect(Collectors.toList());
     }
 
     public List<Reserva> getReservasPorSala(String nombreSala) {
         return reservas.stream()
+                .filter(r -> r != null && r.getNombreSala() != null)
                 .filter(r -> r.getNombreSala().equals(nombreSala))
                 .collect(Collectors.toList());
     }
@@ -129,28 +138,29 @@ public class AsignacionControlador {
     public List<Profesor> buscarProfesores(String query) {
         String lowerCaseQuery = query.toLowerCase().trim();
         return profesores.stream()
-                .filter(p -> p.getNombre().toLowerCase().contains(lowerCaseQuery) ||
-                        p.getRut().toLowerCase().contains(lowerCaseQuery))
+                .filter(p -> p != null && (p.getNombre().toLowerCase().contains(lowerCaseQuery) ||
+                        p.getRut().toLowerCase().contains(lowerCaseQuery)))
                 .collect(Collectors.toList());
     }
 
     public List<Sala> buscarSalas(String query) {
         String lowerCaseQuery = query.toLowerCase().trim();
         return salas.stream()
-                .filter(s -> s.getNombre().toLowerCase().contains(lowerCaseQuery))
+                .filter(s -> s != null && s.getNombre().toLowerCase().contains(lowerCaseQuery))
                 .collect(Collectors.toList());
     }
 
     public List<Asignatura> buscarAsignaturas(String query) {
         String lowerCaseQuery = query.toLowerCase().trim();
         return asignaturas.stream()
-                .filter(a -> a.getNombre().toLowerCase().contains(lowerCaseQuery) ||
-                        a.getCodigo().toLowerCase().contains(lowerCaseQuery))
+                .filter(a -> a != null && (a.getNombre().toLowerCase().contains(lowerCaseQuery) ||
+                        a.getCodigo().toLowerCase().contains(lowerCaseQuery)))
                 .collect(Collectors.toList());
     }
 
     public List<Reserva> filtrarReservas(String rutProfesor, String nombreSala, DiaSemana dia) {
         return reservas.stream()
+                .filter(r -> r != null && r.getHorario() != null && r.getHorario().getDia() != null)
                 .filter(r -> (rutProfesor == null || rutProfesor.isEmpty() || r.getRutProfesor().equalsIgnoreCase(rutProfesor)))
                 .filter(r -> (nombreSala == null || nombreSala.isEmpty() || r.getNombreSala().equalsIgnoreCase(nombreSala)))
                 .filter(r -> (dia == null || r.getHorario().getDia() == dia))

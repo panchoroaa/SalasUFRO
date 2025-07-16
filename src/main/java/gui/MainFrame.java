@@ -12,84 +12,85 @@ public class MainFrame extends JFrame {
 
     private AsignacionControlador controlador;
     private JPanel mainContentPanel;
+    private JPanel navigationPanel;
 
     public MainFrame(AsignacionControlador controlador) {
         this.controlador = controlador;
         setTitle("Sistema de Asignación de Salas");
-        setSize(1000, 700);
+        setSize(1200, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
         setupWindowListener();
+        showPanel(new JLabel("Bienvenido al Sistema de Asignación de Salas UFRO. Seleccione una opción.", SwingConstants.CENTER));
     }
 
     private void initComponents() {
         setLayout(new BorderLayout());
 
-        mainContentPanel = new JPanel();
-        mainContentPanel.setLayout(new BorderLayout());
-        add(mainContentPanel, BorderLayout.CENTER);
+        navigationPanel = new JPanel();
+        navigationPanel.setLayout(new GridLayout(0, 1, 10, 10));
+        navigationPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        navigationPanel.setBackground(new Color(240, 240, 240));
 
-        JLabel welcomeLabel = new JLabel("Seleccione una opción del menú.", SwingConstants.CENTER);
-        mainContentPanel.add(welcomeLabel, BorderLayout.CENTER);
+        JButton btnCrearAsignacion = new JButton("<html>Crear<br>Asignación</html>");
+        JButton btnCancelarAsignacion = new JButton("<html>Cancelar<br>Asignación</html>");
+        JButton btnVerFiltrarAsignaciones = new JButton("<html>Ver / Filtrar<br>Asignaciones</html>");
+        JButton btnGestionarProfesores = new JButton("<html>Gestionar<br>Profesores</html>");
+        JButton btnGestionarSalas = new JButton("<html>Gestionar<br>Salas</html>");
+        JButton btnGestionarAsignaturas = new JButton("<html>Gestionar<br>Asignaturas</html>");
+        JButton btnSalir = new JButton("Salir");
 
-        JMenuBar menuBar = new JMenuBar();
-        setJMenuBar(menuBar);
+        Font buttonFont = new Font("Arial", Font.BOLD, 14);
+        btnCrearAsignacion.setFont(buttonFont);
+        btnCancelarAsignacion.setFont(buttonFont);
+        btnVerFiltrarAsignaciones.setFont(buttonFont);
+        btnGestionarProfesores.setFont(buttonFont);
+        btnGestionarSalas.setFont(buttonFont);
+        btnGestionarAsignaturas.setFont(buttonFont);
+        btnSalir.setFont(buttonFont);
 
-        JMenu fileMenu = new JMenu("Archivo");
-        JMenuItem exitItem = new JMenuItem("Salir");
-        exitItem.addActionListener(e -> System.exit(0));
-        fileMenu.add(exitItem);
-        menuBar.add(fileMenu);
-
-        JMenu profesorMenu = new JMenu("Profesores");
-        JMenuItem viewProfesoresItem = new JMenuItem("Ver/Gestionar Profesores");
-        viewProfesoresItem.addActionListener(e -> showPanel(new ProfesorPanel(controlador)));
-        profesorMenu.add(viewProfesoresItem);
-        menuBar.add(profesorMenu);
-
-        JMenu salaMenu = new JMenu("Salas");
-        JMenuItem viewSalasItem = new JMenuItem("Ver/Gestionar Salas");
-        viewSalasItem.addActionListener(e -> showPanel(new SalaPanel(controlador)));
-        salaMenu.add(viewSalasItem);
-        menuBar.add(salaMenu);
-
-        JMenu asignaturaMenu = new JMenu("Asignaturas");
-        JMenuItem viewAsignaturasItem = new JMenuItem("Ver/Gestionar Asignaturas");
-        viewAsignaturasItem.addActionListener(e -> showPanel(new AsignaturaPanel(controlador)));
-        asignaturaMenu.add(viewAsignaturasItem);
-        menuBar.add(asignaturaMenu);
-
-        JMenu asignacionMenu = new JMenu("Asignaciones");
-        JMenuItem newAsignacionItem = new JMenuItem("Crear Asignación");
-        JMenuItem cancelAsignacionItem = new JMenuItem("Cancelar Asignación");
-        // Opción "Filtrar Asignaciones" ha sido eliminada de aquí
-        JMenuItem viewAllAndFilterAsignacionesItem = new JMenuItem("Ver/Filtrar Asignaciones");
-
-
-        newAsignacionItem.addActionListener(e -> showPanel(new CrearAsignacionPanel(controlador)));
-        cancelAsignacionItem.addActionListener(e -> {
+        btnCrearAsignacion.addActionListener(e -> showPanel(new CrearAsignacionPanel(controlador)));
+        btnCancelarAsignacion.addActionListener(e -> {
             CancelarAsignacionPanel panel = new CancelarAsignacionPanel(controlador);
             panel.loadReservations();
             showPanel(panel);
         });
-        // Unificada la acción de "Ver Todas" y "Filtrar"
-        viewAllAndFilterAsignacionesItem.addActionListener(e -> {
+        btnVerFiltrarAsignaciones.addActionListener(e -> {
             VerTodasAsignacionesPanel panel = new VerTodasAsignacionesPanel(controlador);
             panel.loadReservations();
             showPanel(panel);
         });
+        btnGestionarProfesores.addActionListener(e -> showPanel(new ProfesorPanel(controlador)));
+        btnGestionarSalas.addActionListener(e -> showPanel(new SalaPanel(controlador)));
+        btnGestionarAsignaturas.addActionListener(e -> showPanel(new AsignaturaPanel(controlador)));
+        btnSalir.addActionListener(e -> System.exit(0));
 
-        asignacionMenu.add(newAsignacionItem);
-        asignacionMenu.add(cancelAsignacionItem);
-        asignacionMenu.addSeparator();
-        asignacionMenu.add(viewAllAndFilterAsignacionesItem); // Solo una opción para ver/filtrar
-        menuBar.add(asignacionMenu);
+        navigationPanel.add(btnCrearAsignacion);
+        navigationPanel.add(btnCancelarAsignacion);
+        navigationPanel.add(btnVerFiltrarAsignaciones);
+        navigationPanel.add(btnGestionarProfesores);
+        navigationPanel.add(btnGestionarSalas);
+        navigationPanel.add(btnGestionarAsignaturas);
+        navigationPanel.add(btnSalir);
+
+        mainContentPanel = new JPanel();
+        mainContentPanel.setLayout(new BorderLayout());
+
+        add(navigationPanel, BorderLayout.WEST);
+        add(mainContentPanel, BorderLayout.CENTER);
     }
 
     private void showPanel(JPanel panel) {
         mainContentPanel.removeAll();
         mainContentPanel.add(panel, BorderLayout.CENTER);
+        mainContentPanel.revalidate();
+        mainContentPanel.repaint();
+    }
+
+    private void showPanel(JLabel label) {
+        mainContentPanel.removeAll();
+        mainContentPanel.add(label, BorderLayout.CENTER);
         mainContentPanel.revalidate();
         mainContentPanel.repaint();
     }
@@ -100,6 +101,24 @@ public class MainFrame extends JFrame {
             public void windowClosing(WindowEvent e) {
                 // Lógica de guardado al cerrar la aplicación, si es necesaria.
             }
+        });
+    }
+
+    public static void main(String[] args) {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame(new controlador.AsignacionControlador(new persistencia.JsonDataManager()));
+            frame.setVisible(true);
         });
     }
 }

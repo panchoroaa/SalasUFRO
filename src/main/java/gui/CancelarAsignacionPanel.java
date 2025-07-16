@@ -31,6 +31,7 @@ public class CancelarAsignacionPanel extends JPanel {
         tableModel = new ReservaTableModel();
         asignacionTable = new JTable(tableModel);
         asignacionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        asignacionTable.setAutoCreateRowSorter(true); // Habilitar ordenamiento
         JScrollPane scrollPane = new JScrollPane(asignacionTable);
         add(scrollPane, BorderLayout.CENTER);
 

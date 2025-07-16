@@ -55,7 +55,7 @@ public class VerTodasAsignacionesPanel extends JPanel {
         filterPanel.add(new JLabel("Día:"), gbc);
         gbc.gridx = 1; gbc.gridy = 1;
         filterDiaComboBox = new JComboBox<>();
-        filterDiaComboBox.addItem(null); // Opción para "Cualquier Día"
+        filterDiaComboBox.addItem(null);
         for (DiaSemana dia : DiaSemana.values()) {
             filterDiaComboBox.addItem(dia);
         }
@@ -81,6 +81,7 @@ public class VerTodasAsignacionesPanel extends JPanel {
         tableModel = new ReservaTableModel();
         asignacionTable = new JTable(tableModel);
         asignacionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        asignacionTable.setAutoCreateRowSorter(true); // Habilitar ordenamiento
         JScrollPane scrollPane = new JScrollPane(asignacionTable);
         add(scrollPane, BorderLayout.CENTER);
     }
