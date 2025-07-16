@@ -1,0 +1,25 @@
+{
+  "ramos": [
+    {
+      "codigo": "ICC100",
+      "nombre": "Álgebra y Geometría",
+      "carrera": "Ingeniería",
+      "semestre": 1,
+      "cantidadAlumnos": 40
+    },
+    {
+      "codigo": "ICC200",
+      "nombre": "Química General",
+      "carrera": "Ingeniería",
+      "semestre": 2,
+      "cantidadAlumnos": 35
+    },
+    {
+      "codigo": "ICC300",
+      "nombre": "Cálculo Diferencial",
+      "carrera": "Ingeniería",
+      "semestre": 3,
+      "cantidadAlumnos": 30
+    }
+  ]
+}

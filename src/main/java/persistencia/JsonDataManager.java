@@ -16,29 +16,19 @@ import java.util.Map;
 
 public class JsonDataManager {
 
-    private static final String PROFESORES_FILE_NAME = "BaseDatosProfesores.json";
-    private static final String SALAS_FILE_NAME = "BaseDatosSalas.json";
-    private static final String ASIGNATURAS_FILE_NAME = "BaseDatosAsignaturas.json";
-    private static final String RESERVAS_FILE_NAME = "BaseDatosReservas.json";
-    private static final String HORARIOS_OCUPADOS_FILE_NAME = "BaseDatosHorariosOcupados.json";
+    private static final String BASE_DATOS_DIR = System.getProperty("user.dir") + File.separator + "Datos" + File.separator;
+
+    private static final String PROFESORES_FILE_NAME = BASE_DATOS_DIR + "BaseDatosProfesores.json";
+    private static final String SALAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosSalas.json";
+    private static final String ASIGNATURAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosAsignaturas.json";
+    private static final String RESERVAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosReservas.json";
+    private static final String HORARIOS_OCUPADOS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosHorariosOcupados.json";
 
     private final ObjectMapper objectMapper;
-    private final String profesoresFilePath;
-    private final String salasFilePath;
-    private final String asignaturasFilePath;
-    private final String reservasFilePath;
-    private final String horariosOcupadosFilePath;
-
     public JsonDataManager() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.objectMapper.registerModule(new JavaTimeModule());
-
-        this.profesoresFilePath = getResourceAbsolutePath(PROFESORES_FILE_NAME);
-        this.salasFilePath = getResourceAbsolutePath(SALAS_FILE_NAME);
-        this.asignaturasFilePath = getResourceAbsolutePath(ASIGNATURAS_FILE_NAME);
-        this.reservasFilePath = getResourceAbsolutePath(RESERVAS_FILE_NAME);
-        this.horariosOcupadosFilePath = getResourceAbsolutePath(HORARIOS_OCUPADOS_FILE_NAME);
 
         createFilesIfNotExist();
     }
@@ -48,36 +38,16 @@ public class JsonDataManager {
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.objectMapper.registerModule(new JavaTimeModule());
 
-        this.profesoresFilePath = profesoresPath;
-        this.salasFilePath = salasPath;
-        this.asignaturasFilePath = asignaturasPath;
-        this.reservasFilePath = reservasPath;
-        this.horariosOcupadosFilePath = horariosOcupadosPath;
-
         createTestFileParentDirectories();
     }
 
-    private String getResourceAbsolutePath(String resourceName) {
-        try {
-            URL resourceUrl = getClass().getClassLoader().getResource(resourceName);
-            if (resourceUrl != null) {
-                return new File(resourceUrl.toURI()).getAbsolutePath();
-            } else {
-                System.err.println("Advertencia: Recurso '" + resourceName + "' no encontrado en el classpath. Intentando ruta relativa.");
-                return resourceName;
-            }
-        } catch (Exception e) {
-            System.err.println("Error al obtener la ruta absoluta para el recurso '" + resourceName + "': " + e.getMessage());
-            return resourceName;
-        }
-    }
 
     private void createFilesIfNotExist() {
-        createFileIfNotExist(profesoresFilePath, "[]");
-        createFileIfNotExist(salasFilePath, "[]");
-        createFileIfNotExist(asignaturasFilePath, "[]");
-        createFileIfNotExist(reservasFilePath, "[]");
-        createFileIfNotExist(horariosOcupadosFilePath, "{}");
+        createFileIfNotExist(PROFESORES_FILE_NAME, "[]");
+        createFileIfNotExist(SALAS_FILE_NAME, "[]");
+        createFileIfNotExist(ASIGNATURAS_FILE_NAME, "[]");
+        createFileIfNotExist(RESERVAS_FILE_NAME, "[]");
+        createFileIfNotExist(HORARIOS_OCUPADOS_FILE_NAME, "{}");
     }
 
     private void createFileIfNotExist(String filePath, String defaultContent) {
@@ -100,7 +70,7 @@ public class JsonDataManager {
     }
 
     private void createTestFileParentDirectories() {
-        String[] paths = {profesoresFilePath, salasFilePath, asignaturasFilePath, reservasFilePath, horariosOcupadosFilePath};
+        String[] paths = {PROFESORES_FILE_NAME, SALAS_FILE_NAME, ASIGNATURAS_FILE_NAME, RESERVAS_FILE_NAME, HORARIOS_OCUPADOS_FILE_NAME};
         for (String path : paths) {
             File parentDir = new File(path).getParentFile();
             if (parentDir != null && !parentDir.exists()) {
@@ -112,43 +82,43 @@ public class JsonDataManager {
     }
 
     public void guardarProfesores(List<Profesor> data) {
-        guardarDatos(profesoresFilePath, data);
+        guardarDatos(PROFESORES_FILE_NAME, data);
     }
 
     public void guardarSalas(List<Sala> data) {
-        guardarDatos(salasFilePath, data);
+        guardarDatos(SALAS_FILE_NAME, data);
     }
 
     public void guardarAsignaturas(List<Asignatura> data) {
-        guardarDatos(asignaturasFilePath, data);
+        guardarDatos(ASIGNATURAS_FILE_NAME, data);
     }
 
     public void guardarReservas(List<Reserva> data) {
-        guardarDatos(reservasFilePath, data);
+        guardarDatos(RESERVAS_FILE_NAME, data);
     }
 
     public void guardarHorariosOcupados(Map<String, Map<String, String>> data) {
-        guardarMapaDatos(horariosOcupadosFilePath, data);
+        guardarMapaDatos(HORARIOS_OCUPADOS_FILE_NAME, data);
     }
 
     public List<Profesor> cargarProfesores() {
-        return cargarListaDatos(profesoresFilePath, new TypeReference<>() {});
+        return cargarListaDatos(PROFESORES_FILE_NAME, new TypeReference<>() {});
     }
 
     public List<Sala> cargarSalas() {
-        return cargarListaDatos(salasFilePath, new TypeReference<>() {});
+        return cargarListaDatos(SALAS_FILE_NAME, new TypeReference<>() {});
     }
 
     public List<Asignatura> cargarAsignaturas() {
-        return cargarListaDatos(asignaturasFilePath, new TypeReference<>() {});
+        return cargarListaDatos(ASIGNATURAS_FILE_NAME, new TypeReference<>() {});
     }
 
     public List<Reserva> cargarReservas() {
-        return cargarListaDatos(reservasFilePath, new TypeReference<>() {});
+        return cargarListaDatos(RESERVAS_FILE_NAME, new TypeReference<>() {});
     }
 
     public Map<String, Map<String, String>> cargarHorariosOcupados() {
-        return cargarMapaDatos(horariosOcupadosFilePath, new TypeReference<>() {});
+        return cargarMapaDatos(HORARIOS_OCUPADOS_FILE_NAME, new TypeReference<>() {});
     }
 
     private <T> List<T> cargarListaDatos(String filePath, TypeReference<List<T>> typeReference) {
@@ -201,11 +171,11 @@ public class JsonDataManager {
 
     public void limpiarDatos() {
         try {
-            if (profesoresFilePath != null) new File(profesoresFilePath).delete();
-            if (salasFilePath != null) new File(salasFilePath).delete();
-            if (asignaturasFilePath != null) new File(asignaturasFilePath).delete();
-            if (reservasFilePath != null) new File(reservasFilePath).delete();
-            if (horariosOcupadosFilePath != null) new File(horariosOcupadosFilePath).delete();
+            if (PROFESORES_FILE_NAME != null) new File(PROFESORES_FILE_NAME).delete();
+            if (SALAS_FILE_NAME != null) new File(SALAS_FILE_NAME).delete();
+            if (ASIGNATURAS_FILE_NAME != null) new File(ASIGNATURAS_FILE_NAME).delete();
+            if (RESERVAS_FILE_NAME != null) new File(RESERVAS_FILE_NAME).delete();
+            if (HORARIOS_OCUPADOS_FILE_NAME != null) new File(HORARIOS_OCUPADOS_FILE_NAME).delete();
         } catch (Exception e) {
             System.err.println("Error al intentar limpiar archivos de datos: " + e.getMessage());
         }

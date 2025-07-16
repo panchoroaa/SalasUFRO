@@ -1,0 +1,15 @@
+{
+  "basedatosprofesores" : [ {
+    "nombre" : "Javier",
+    "rut" : "213231057",
+    "departamento" : "Matematicas",
+    "ID" : "34c7f2b1-a48a-4fbd-9b79-2e8508bb510e",
+    "asignaturasImpartidas" : [ ]
+  }, {
+    "nombre" : "pepito",
+    "rut" : "152331113",
+    "departamento" : "Fisica",
+    "ID" : "b588a9a8-e3c6-438b-a8ce-154757ac433e",
+    "asignaturasImpartidas" : [ ]
+  } ]
+}
