@@ -1,7 +1,6 @@
 package gui;
 
 import controlador.AsignacionControlador;
-import gui.HorarioPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,38 +33,27 @@ public class MainFrame extends JFrame {
         navigationPanel.setBackground(new Color(240, 240, 240));
 
         JButton btnCrearAsignacion = new JButton("<html>Crear<br>Asignación</html>");
-        JButton btnCancelarAsignacion = new JButton("<html>Cancelar<br>Asignación</html>");
         JButton btnVerFiltrarAsignaciones = new JButton("<html>Ver / Filtrar<br>Asignaciones</html>");
-        JButton btnVerHorarios = new JButton("<html>Ver<br>Horarios</html>");
-        JButton btnGestionarProfesores = new JButton("<html>Gestionar<br>Profesores</html>");
-        JButton btnGestionarSalas = new JButton("<html>Gestionar<br>Salas</html>");
-        JButton btnGestionarAsignaturas = new JButton("<html>Gestionar<br>Asignaturas</html>");
+        JButton btnGestionarProfesores = new JButton("<html>Profesores</html>");
+        JButton btnGestionarSalas = new JButton("<html>Salas</html>");
+        JButton btnGestionarAsignaturas = new JButton("<html>Asignaturas</html>");
         JButton btnSalir = new JButton("Salir");
 
         Font buttonFont = new Font("Arial", Font.BOLD, 14);
         btnCrearAsignacion.setFont(buttonFont);
-        btnCancelarAsignacion.setFont(buttonFont);
         btnVerFiltrarAsignaciones.setFont(buttonFont);
-        btnVerHorarios.setFont(buttonFont);
+
         btnGestionarProfesores.setFont(buttonFont);
         btnGestionarSalas.setFont(buttonFont);
         btnGestionarAsignaturas.setFont(buttonFont);
         btnSalir.setFont(buttonFont);
 
-        btnCrearAsignacion.addActionListener(e -> showPanel(new CrearAsignacionPanel(controlador)));
-        btnCancelarAsignacion.addActionListener(e -> {
-            CancelarAsignacionPanel panel = new CancelarAsignacionPanel(controlador);
-            panel.loadReservations();
-            showPanel(panel);
-        });
+        btnCrearAsignacion.addActionListener(e -> showPanel(new HorarioVisualPanel(controlador)));
+
         btnVerFiltrarAsignaciones.addActionListener(e -> {
             VerTodasAsignacionesPanel panel = new VerTodasAsignacionesPanel(controlador);
             panel.loadReservations();
             showPanel(panel);
-        });
-        btnVerHorarios.addActionListener(e -> {
-            HorarioPanel horarioPanel = new HorarioPanel(controlador);
-            horarioPanel.setVisible(true);
         });
         btnGestionarProfesores.addActionListener(e -> showPanel(new ProfesorPanel(controlador)));
         btnGestionarSalas.addActionListener(e -> showPanel(new SalaPanel(controlador)));
@@ -73,9 +61,7 @@ public class MainFrame extends JFrame {
         btnSalir.addActionListener(e -> System.exit(0));
 
         navigationPanel.add(btnCrearAsignacion);
-        navigationPanel.add(btnCancelarAsignacion);
         navigationPanel.add(btnVerFiltrarAsignaciones);
-        navigationPanel.add(btnVerHorarios);
         navigationPanel.add(btnGestionarProfesores);
         navigationPanel.add(btnGestionarSalas);
         navigationPanel.add(btnGestionarAsignaturas);

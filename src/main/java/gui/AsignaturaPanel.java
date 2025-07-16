@@ -22,7 +22,7 @@ public class AsignaturaPanel extends JPanel {
     }
 
     private void initComponents() {
-        JLabel titleLabel = new JLabel("Gestión de Asignaturas", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Asignaturas", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         add(titleLabel, BorderLayout.NORTH);
 

@@ -22,7 +22,7 @@ public class ProfesorPanel extends JPanel {
     }
 
     private void initComponents() {
-        JLabel titleLabel = new JLabel("Gestión de Profesores", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Profesores", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         add(titleLabel, BorderLayout.NORTH);
 

@@ -22,7 +22,7 @@ public class SalaPanel extends JPanel {
     }
 
     private void initComponents() {
-        JLabel titleLabel = new JLabel("Gestión de Salas", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Salas", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         add(titleLabel, BorderLayout.NORTH);
 

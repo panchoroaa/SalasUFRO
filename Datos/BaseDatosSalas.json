@@ -2,9 +2,12 @@
   "nombre" : "DCI-100",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
-  "horariosOcupados" : [ ]
-},
-  {
+  "horariosOcupados" : [ {
+    "dia" : "MARTES",
+    "bloqueEnum" : "BLOQUE_1",
+    "bloque" : 1
+  } ]
+}, {
   "nombre" : "DCI-101",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
@@ -14,64 +17,54 @@
   "capacidad" : 30,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "Auditorio",
   "capacidad" : 45,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "DCI-201",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "DCI-202",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "DCI-203",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-101",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-102",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-103",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-104",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-105",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},
-  {
+}, {
   "nombre" : "R-106",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-}  ]
+} ]

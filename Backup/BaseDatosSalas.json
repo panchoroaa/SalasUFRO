@@ -74,4 +74,16 @@
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-}  ]
+},
+  {
+    "nombre" : "D-202",
+    "capacidad" : 15,
+    "estado" : "NO DISPONIBLE",
+    "horariosOcupados" : [ ]
+  },
+  {
+    "nombre" : "D-206",
+    "capacidad" : 15,
+    "estado" : "NO DISPONIBLE",
+    "horariosOcupados" : [ ]
+  } ]
