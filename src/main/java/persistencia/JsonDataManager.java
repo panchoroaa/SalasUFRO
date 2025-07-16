@@ -18,9 +18,9 @@ import java.util.Map;
 public class JsonDataManager {
 
     private static final String BASE_DATOS_DIR = System.getProperty("user.dir") + File.separator + "Datos" + File.separator;
-    private static final String BACKUP_DIR = System.getProperty("user.dir") + File.separator + "Backups" + File.separator; // Directorio de backups
+    private static final String BACKUP_DIR = System.getProperty("user.dir") + File.separator + "Backup" + File.separator;
 
-    // Rutas de los archivos de datos
+
     private static final String PROFESORES_FILE_NAME = BASE_DATOS_DIR + "BaseDatosProfesores.json";
     private static final String SALAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosSalas.json";
     private static final String ASIGNATURAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosAsignaturas.json";
@@ -46,19 +46,13 @@ public class JsonDataManager {
         crearDirectoriosBase();
     }
 
-    /**
-     * Se asegura de que los directorios 'Datos' y 'Backups' existan al iniciar.
-     */
+
     private void crearDirectoriosBase() {
         new File(BASE_DATOS_DIR).mkdirs();
         new File(BACKUP_DIR).mkdirs();
     }
 
-    /**
-     * Lógica principal para cargar listas (Profesores, Salas, etc.).
-     * Verifica si el archivo existe. Si no, intenta restaurarlo desde un backup.
-     * Si no hay backup, crea un archivo vacío.
-     */
+
     private <T> List<T> cargarListaDatos(String filePath, TypeReference<List<T>> typeReference) {
         if (filePath == null) return new ArrayList<>();
         File file = new File(filePath);
@@ -83,10 +77,7 @@ public class JsonDataManager {
         }
     }
 
-    /**
-     * Lógica principal para cargar mapas.
-     * Sigue la misma lógica de backup que cargarListaDatos.
-     */
+
     private <K, V> Map<K, V> cargarMapaDatos(String filePath, TypeReference<Map<K, V>> typeReference) {
         if (filePath == null) return new HashMap<>();
         File file = new File(filePath);
@@ -111,9 +102,7 @@ public class JsonDataManager {
         }
     }
 
-    /**
-     * Copia un archivo desde un origen a un destino.
-     */
+
     private void copiarArchivo(File origen, File destino) {
         try {
             Files.copy(origen.toPath(), destino.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -123,9 +112,7 @@ public class JsonDataManager {
         }
     }
 
-    /**
-     * Crea un archivo con contenido JSON por defecto ("[]" o "{}").
-     */
+
     private void crearArchivoVacio(String filePath, String defaultContent) {
         try {
             File file = new File(filePath);
@@ -134,8 +121,6 @@ public class JsonDataManager {
             System.err.println("ERROR: No se pudo crear el archivo JSON vacío en " + filePath + ": " + e.getMessage());
         }
     }
-
-    // --- Métodos Públicos (sin cambios) ---
 
     public List<Profesor> cargarProfesores() {
         return cargarListaDatos(PROFESORES_FILE_NAME, new TypeReference<>() {});

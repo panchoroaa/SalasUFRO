@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 public class AsignacionControlador {
 
-    private final JsonDataManager dataManager;
-    private final List<Profesor> profesores;
-    private final List<Sala> salas;
-    private final List<Asignatura> asignaturas;
-    private final List<Reserva> reservas;
+    private JsonDataManager dataManager;
+    private List<Profesor> profesores;
+    private List<Sala> salas;
+    private List<Asignatura> asignaturas;
+    private List<Reserva> reservas;
 
     public AsignacionControlador(JsonDataManager dataManager) { // <-- Se verifica BaseDatosAsignaturas.json
         this.dataManager = dataManager;
@@ -22,6 +22,7 @@ public class AsignacionControlador {
         this.asignaturas = dataManager.cargarAsignaturas();
         this.reservas = dataManager.cargarReservas();
     }
+
     public List<Reserva> filtrarReservas(String rutProfesor, String nombreSala, String codigoAsignatura, DiaSemana dia) {
         return reservas.stream()
                 .filter(r -> r != null && r.getHorario() != null && r.getHorario().getDia() != null)
@@ -32,10 +33,21 @@ public class AsignacionControlador {
                 .collect(Collectors.toList());
     }
 
-    public List<Profesor> getProfesores() { return profesores; }
-    public List<Sala> getSalas() { return salas; }
-    public List<Asignatura> getAsignaturas() { return asignaturas; }
-    public List<Reserva> getReservas() { return reservas; }
+    public List<Profesor> getProfesores() {
+        return profesores;
+    }
+
+    public List<Sala> getSalas() {
+        return salas;
+    }
+
+    public List<Asignatura> getAsignaturas() {
+        return asignaturas;
+    }
+
+    public List<Reserva> getReservas() {
+        return reservas;
+    }
 
     public Optional<Profesor> getProfesorPorRut(String rut) {
         return profesores.stream().filter(p -> p != null && p.getRut().equals(rut)).findFirst();
@@ -174,5 +186,14 @@ public class AsignacionControlador {
                 .filter(r -> (nombreSala == null || nombreSala.isEmpty() || r.getNombreSala().equalsIgnoreCase(nombreSala)))
                 .filter(r -> (dia == null || r.getHorario().getDia() == dia))
                 .collect(Collectors.toList());
+    }
+
+    public void recargarDatos() {
+        System.out.println("INFO: Recargando todos los datos desde los archivos...");
+        this.profesores = dataManager.cargarProfesores();
+        this.salas = dataManager.cargarSalas();
+        this.asignaturas = dataManager.cargarAsignaturas();
+        this.reservas = dataManager.cargarReservas();
+        System.out.println("INFO: Datos recargados con éxito.");
     }
 }

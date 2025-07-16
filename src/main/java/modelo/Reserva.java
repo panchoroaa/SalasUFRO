@@ -42,7 +42,7 @@ public class Reserva {
     }
 
     @Override
-    public String toString() { // Basic toString for when full objects aren't available
+    public String toString() {
         return String.format("Reserva: Prof: %s | Sala: %s | Asig: %s | Horario: %s",
                 rutProfesor, nombreSala, codigoAsignatura, horario != null ? horario.toString() : "N/A");
     }

@@ -34,12 +34,7 @@ public class Sala {
     public List<Horario> getHorariosOcupados() { return horariosOcupados; }
     public void setHorariosOcupados(List<Horario> horariosOcupados) { this.horariosOcupados = horariosOcupados; }
 
-    // --- Métodos de Lógica de Negocio ---
-    /**
-     * Verifica la disponibilidad de la sala considerando su estado y si el horario ya está en la lista de ocupados.
-     * @param horario El horario a verificar.
-     * @return true si está disponible, false en caso contrario.
-     */
+
     public boolean estaDisponibleEn(Horario horario) {
         // Updated logic based on EstadoSala enum values
         if (this.estado != EstadoSala.DISPONIBLE) {
@@ -48,20 +43,12 @@ public class Sala {
         return this.horariosOcupados.stream().noneMatch(h -> h.equals(horario));
     }
 
-    /**
-     * Agrega un horario a la lista de horarios ocupados.
-     * @param horario El horario a agregar.
-     */
     public void agregarHorarioOcupado(Horario horario) {
         if (!horariosOcupados.contains(horario)) {
             horariosOcupados.add(horario);
         }
     }
 
-    /**
-     * Remueve un horario de la lista de horarios ocupados.
-     * @param horario El horario a remover.
-     */
     public void removerHorarioOcupado(Horario horario) {
         horariosOcupados.remove(horario);
     }
@@ -76,7 +63,7 @@ public class Sala {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Sala sala = (Sala) o;
-        return Objects.equals(nombre, sala.nombre); // Assuming name is unique identifier for Sala
+        return Objects.equals(nombre, sala.nombre);
     }
 
     @Override
