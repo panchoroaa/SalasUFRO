@@ -1,7 +1,7 @@
 package gui;
 
 import controlador.AsignacionControlador;
-import persistencia.JsonDataManager;
+import gui.HorarioPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,6 +36,7 @@ public class MainFrame extends JFrame {
         JButton btnCrearAsignacion = new JButton("<html>Crear<br>Asignación</html>");
         JButton btnCancelarAsignacion = new JButton("<html>Cancelar<br>Asignación</html>");
         JButton btnVerFiltrarAsignaciones = new JButton("<html>Ver / Filtrar<br>Asignaciones</html>");
+        JButton btnVerHorarios = new JButton("<html>Ver<br>Horarios</html>");
         JButton btnGestionarProfesores = new JButton("<html>Gestionar<br>Profesores</html>");
         JButton btnGestionarSalas = new JButton("<html>Gestionar<br>Salas</html>");
         JButton btnGestionarAsignaturas = new JButton("<html>Gestionar<br>Asignaturas</html>");
@@ -45,6 +46,7 @@ public class MainFrame extends JFrame {
         btnCrearAsignacion.setFont(buttonFont);
         btnCancelarAsignacion.setFont(buttonFont);
         btnVerFiltrarAsignaciones.setFont(buttonFont);
+        btnVerHorarios.setFont(buttonFont);
         btnGestionarProfesores.setFont(buttonFont);
         btnGestionarSalas.setFont(buttonFont);
         btnGestionarAsignaturas.setFont(buttonFont);
@@ -61,6 +63,10 @@ public class MainFrame extends JFrame {
             panel.loadReservations();
             showPanel(panel);
         });
+        btnVerHorarios.addActionListener(e -> {
+            HorarioPanel horarioPanel = new HorarioPanel(controlador);
+            horarioPanel.setVisible(true);
+        });
         btnGestionarProfesores.addActionListener(e -> showPanel(new ProfesorPanel(controlador)));
         btnGestionarSalas.addActionListener(e -> showPanel(new SalaPanel(controlador)));
         btnGestionarAsignaturas.addActionListener(e -> showPanel(new AsignaturaPanel(controlador)));
@@ -69,6 +75,7 @@ public class MainFrame extends JFrame {
         navigationPanel.add(btnCrearAsignacion);
         navigationPanel.add(btnCancelarAsignacion);
         navigationPanel.add(btnVerFiltrarAsignaciones);
+        navigationPanel.add(btnVerHorarios);
         navigationPanel.add(btnGestionarProfesores);
         navigationPanel.add(btnGestionarSalas);
         navigationPanel.add(btnGestionarAsignaturas);
@@ -101,24 +108,6 @@ public class MainFrame extends JFrame {
             public void windowClosing(WindowEvent e) {
                 // Lógica de guardado al cerrar la aplicación, si es necesaria.
             }
-        });
-    }
-
-    public static void main(String[] args) {
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame(new controlador.AsignacionControlador(new persistencia.JsonDataManager()));
-            frame.setVisible(true);
         });
     }
 }
