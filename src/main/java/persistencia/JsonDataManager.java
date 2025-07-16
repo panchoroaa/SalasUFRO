@@ -8,7 +8,8 @@ import modelo.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,9 @@ import java.util.Map;
 public class JsonDataManager {
 
     private static final String BASE_DATOS_DIR = System.getProperty("user.dir") + File.separator + "Datos" + File.separator;
+    private static final String BACKUP_DIR = System.getProperty("user.dir") + File.separator + "Backups" + File.separator; // Directorio de backups
 
+    // Rutas de los archivos de datos
     private static final String PROFESORES_FILE_NAME = BASE_DATOS_DIR + "BaseDatosProfesores.json";
     private static final String SALAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosSalas.json";
     private static final String ASIGNATURAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosAsignaturas.json";
@@ -25,60 +28,133 @@ public class JsonDataManager {
     private static final String HORARIOS_OCUPADOS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosHorariosOcupados.json";
 
     private final ObjectMapper objectMapper;
+
     public JsonDataManager() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.objectMapper.registerModule(new JavaTimeModule());
 
-        createFilesIfNotExist();
+        // Asegurarse de que los directorios base existan
+        crearDirectoriosBase();
     }
 
+    // Constructor para pruebas (opcional)
     public JsonDataManager(String profesoresPath, String salasPath, String asignaturasPath, String reservasPath, String horariosOcupadosPath) {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.objectMapper.registerModule(new JavaTimeModule());
-
-        createTestFileParentDirectories();
+        crearDirectoriosBase();
     }
 
-
-    private void createFilesIfNotExist() {
-        createFileIfNotExist(PROFESORES_FILE_NAME, "[]");
-        createFileIfNotExist(SALAS_FILE_NAME, "[]");
-        createFileIfNotExist(ASIGNATURAS_FILE_NAME, "[]");
-        createFileIfNotExist(RESERVAS_FILE_NAME, "[]");
-        createFileIfNotExist(HORARIOS_OCUPADOS_FILE_NAME, "{}");
+    /**
+     * Se asegura de que los directorios 'Datos' y 'Backups' existan al iniciar.
+     */
+    private void crearDirectoriosBase() {
+        new File(BASE_DATOS_DIR).mkdirs();
+        new File(BACKUP_DIR).mkdirs();
     }
 
-    private void createFileIfNotExist(String filePath, String defaultContent) {
-        if (filePath == null) return;
+    /**
+     * Lógica principal para cargar listas (Profesores, Salas, etc.).
+     * Verifica si el archivo existe. Si no, intenta restaurarlo desde un backup.
+     * Si no hay backup, crea un archivo vacío.
+     */
+    private <T> List<T> cargarListaDatos(String filePath, TypeReference<List<T>> typeReference) {
+        if (filePath == null) return new ArrayList<>();
         File file = new File(filePath);
+
         if (!file.exists() || file.length() == 0) {
-            try {
-                File parentDir = file.getParentFile();
-                if (parentDir != null && !parentDir.exists()) {
-                    if (!parentDir.mkdirs()) {
-                        System.err.println("Error: No se pudo crear el directorio padre para " + filePath);
-                        return;
-                    }
-                }
-                objectMapper.writeValue(file, objectMapper.readTree(defaultContent));
-            } catch (IOException e) {
-                System.err.println("Error al crear archivo JSON vacío en " + filePath + ": " + e.getMessage());
+            File backupFile = new File(BACKUP_DIR + file.getName());
+            if (backupFile.exists()) {
+                System.out.println("INFO: Archivo no encontrado en 'Datos'. Restaurando desde 'Backups': " + file.getName());
+                copiarArchivo(backupFile, file);
+            } else {
+                System.out.println("ADVERTENCIA: No se encontró el archivo ni el backup. Creando archivo vacío: " + file.getName());
+                crearArchivoVacio(filePath, "[]");
+                return new ArrayList<>();
             }
+        }
+
+        try {
+            return objectMapper.readValue(file, typeReference);
+        } catch (IOException e) {
+            System.err.println("ERROR: Error al cargar lista desde " + filePath + ": " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 
-    private void createTestFileParentDirectories() {
-        String[] paths = {PROFESORES_FILE_NAME, SALAS_FILE_NAME, ASIGNATURAS_FILE_NAME, RESERVAS_FILE_NAME, HORARIOS_OCUPADOS_FILE_NAME};
-        for (String path : paths) {
-            File parentDir = new File(path).getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                if (!parentDir.mkdirs()) {
-                    System.err.println("Error: No se pudo crear el directorio para tests/rutas personalizadas: " + parentDir.getAbsolutePath());
-                }
+    /**
+     * Lógica principal para cargar mapas.
+     * Sigue la misma lógica de backup que cargarListaDatos.
+     */
+    private <K, V> Map<K, V> cargarMapaDatos(String filePath, TypeReference<Map<K, V>> typeReference) {
+        if (filePath == null) return new HashMap<>();
+        File file = new File(filePath);
+
+        if (!file.exists() || file.length() == 0) {
+            File backupFile = new File(BACKUP_DIR + file.getName());
+            if (backupFile.exists()) {
+                System.out.println("INFO: Archivo no encontrado en 'Datos'. Restaurando desde 'Backups': " + file.getName());
+                copiarArchivo(backupFile, file);
+            } else {
+                System.out.println("ADVERTENCIA: No se encontró el archivo ni el backup. Creando archivo vacío: " + file.getName());
+                crearArchivoVacio(filePath, "{}");
+                return new HashMap<>();
             }
         }
+
+        try {
+            return objectMapper.readValue(file, typeReference);
+        } catch (IOException e) {
+            System.err.println("ERROR: Error al cargar mapa desde " + filePath + ": " + e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    /**
+     * Copia un archivo desde un origen a un destino.
+     */
+    private void copiarArchivo(File origen, File destino) {
+        try {
+            Files.copy(origen.toPath(), destino.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("ÉXITO: Archivo restaurado desde " + origen.getPath() + " a " + destino.getPath());
+        } catch (IOException e) {
+            System.err.println("ERROR: No se pudo copiar el archivo de backup: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Crea un archivo con contenido JSON por defecto ("[]" o "{}").
+     */
+    private void crearArchivoVacio(String filePath, String defaultContent) {
+        try {
+            File file = new File(filePath);
+            objectMapper.writeValue(file, objectMapper.readTree(defaultContent));
+        } catch (IOException e) {
+            System.err.println("ERROR: No se pudo crear el archivo JSON vacío en " + filePath + ": " + e.getMessage());
+        }
+    }
+
+    // --- Métodos Públicos (sin cambios) ---
+
+    public List<Profesor> cargarProfesores() {
+        return cargarListaDatos(PROFESORES_FILE_NAME, new TypeReference<>() {});
+    }
+
+    public List<Sala> cargarSalas() {
+        return cargarListaDatos(SALAS_FILE_NAME, new TypeReference<>() {});
+    }
+
+    public List<Asignatura> cargarAsignaturas() {
+        return cargarListaDatos(ASIGNATURAS_FILE_NAME, new TypeReference<>() {});
+    }
+
+    public List<Reserva> cargarReservas() {
+        return cargarListaDatos(RESERVAS_FILE_NAME, new TypeReference<>() {});
+    }
+
+    public Map<String, Map<String, String>> cargarHorariosOcupados() {
+        return cargarMapaDatos(HORARIOS_OCUPADOS_FILE_NAME, new TypeReference<>() {});
     }
 
     public void guardarProfesores(List<Profesor> data) {
@@ -101,83 +177,19 @@ public class JsonDataManager {
         guardarMapaDatos(HORARIOS_OCUPADOS_FILE_NAME, data);
     }
 
-    public List<Profesor> cargarProfesores() {
-        return cargarListaDatos(PROFESORES_FILE_NAME, new TypeReference<>() {});
-    }
-
-    public List<Sala> cargarSalas() {
-        return cargarListaDatos(SALAS_FILE_NAME, new TypeReference<>() {});
-    }
-
-    public List<Asignatura> cargarAsignaturas() {
-        return cargarListaDatos(ASIGNATURAS_FILE_NAME, new TypeReference<>() {});
-    }
-
-    public List<Reserva> cargarReservas() {
-        return cargarListaDatos(RESERVAS_FILE_NAME, new TypeReference<>() {});
-    }
-
-    public Map<String, Map<String, String>> cargarHorariosOcupados() {
-        return cargarMapaDatos(HORARIOS_OCUPADOS_FILE_NAME, new TypeReference<>() {});
-    }
-
-    private <T> List<T> cargarListaDatos(String filePath, TypeReference<List<T>> typeReference) {
-        if (filePath == null) return new ArrayList<>();
-        File file = new File(filePath);
-        if (!file.exists() || file.length() == 0) {
-            return new ArrayList<>();
-        }
-        try {
-            return objectMapper.readValue(file, typeReference);
-        } catch (IOException e) {
-            System.err.println("Error al cargar lista de " + filePath + ": " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
     private <T> void guardarDatos(String filePath, List<T> data) {
-        if (filePath == null) return;
-        File file = new File(filePath);
         try {
-            objectMapper.writeValue(file, data);
+            objectMapper.writeValue(new File(filePath), data);
         } catch (IOException e) {
             System.err.println("Error al guardar lista en " + filePath + ": " + e.getMessage());
         }
     }
 
-    private <K, V> Map<K, V> cargarMapaDatos(String filePath, TypeReference<Map<K, V>> typeReference) {
-        if (filePath == null) return new HashMap<>();
-        File file = new File(filePath);
-        if (!file.exists() || file.length() == 0) {
-            return new HashMap<>();
-        }
-        try {
-            return objectMapper.readValue(file, typeReference);
-        } catch (IOException e) {
-            System.err.println("Error al cargar mapa de " + filePath + ": " + e.getMessage());
-            return new HashMap<>();
-        }
-    }
-
     private <K, V> void guardarMapaDatos(String filePath, Map<K, V> data) {
-        if (filePath == null) return;
-        File file = new File(filePath);
         try {
-            objectMapper.writeValue(file, data);
+            objectMapper.writeValue(new File(filePath), data);
         } catch (IOException e) {
             System.err.println("Error al guardar mapa en " + filePath + ": " + e.getMessage());
-        }
-    }
-
-    public void limpiarDatos() {
-        try {
-            if (PROFESORES_FILE_NAME != null) new File(PROFESORES_FILE_NAME).delete();
-            if (SALAS_FILE_NAME != null) new File(SALAS_FILE_NAME).delete();
-            if (ASIGNATURAS_FILE_NAME != null) new File(ASIGNATURAS_FILE_NAME).delete();
-            if (RESERVAS_FILE_NAME != null) new File(RESERVAS_FILE_NAME).delete();
-            if (HORARIOS_OCUPADOS_FILE_NAME != null) new File(HORARIOS_OCUPADOS_FILE_NAME).delete();
-        } catch (Exception e) {
-            System.err.println("Error al intentar limpiar archivos de datos: " + e.getMessage());
         }
     }
 }

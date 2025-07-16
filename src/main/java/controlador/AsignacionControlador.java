@@ -15,7 +15,7 @@ public class AsignacionControlador {
     private final List<Asignatura> asignaturas;
     private final List<Reserva> reservas;
 
-    public AsignacionControlador(JsonDataManager dataManager) {
+    public AsignacionControlador(JsonDataManager dataManager) { // <-- Se verifica BaseDatosAsignaturas.json
         this.dataManager = dataManager;
         this.profesores = dataManager.cargarProfesores();
         this.salas = dataManager.cargarSalas();
