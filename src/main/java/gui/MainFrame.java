@@ -92,7 +92,6 @@ public class MainFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                // Lógica de guardado al cerrar la aplicación, si es necesaria.
             }
         });
     }
