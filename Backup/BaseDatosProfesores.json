@@ -2,18 +2,18 @@
   {
     "nombre": "Ana García",
     "rut": "11.111.111-1",
-    "departamento": "Informática",
+    "departamento": "Matemáticas",
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "asignaturasImpartidas": [
       {
-        "nombre": "Programación Avanzada",
-        "codigo": "PA301",
-        "cantidadAlumnos": 20
+        "nombre": "PreCalculo I",
+        "codigo": "IME027",
+        "cantidadAlumnos": 40
       },
       {
-        "nombre": "Bases de Datos I",
-        "codigo": "BD101",
-        "cantidadAlumnos": 30
+        "nombre": "PreCalculo II",
+        "codigo": "IME029",
+        "cantidadAlumnos": 25
       }
     ]
   },
@@ -24,14 +24,14 @@
     "id": "b1c2d3e4-f5a6-0987-fedc-ba9876543210",
     "asignaturasImpartidas": [
       {
-        "nombre": "Cálculo I",
-        "codigo": "CAL101",
-        "cantidadAlumnos": 40
+        "nombre": "Algebra",
+        "codigo": "IME030",
+        "cantidadAlumnos": 30
       },
       {
-        "nombre": "Álgebra Lineal",
-        "codigo": "AL201",
-        "cantidadAlumnos": 25
+        "nombre": "Introduccion al Algebra",
+        "codigo": "IME028",
+        "cantidadAlumnos": 20
       }
     ]
   },
@@ -42,32 +42,22 @@
     "id": "c1d2e3f4-a5b6-1234-5678-90abcdef1234",
     "asignaturasImpartidas": [
       {
-        "nombre": "Diseño Gráfico Digital",
-        "codigo": "DGD101",
-        "cantidadAlumnos": 15
-      },
-      {
-        "nombre": "Animación 3D",
-        "codigo": "ANI201",
-        "cantidadAlumnos": 10
+        "nombre": "Ingenieria y Sociedad",
+        "codigo": "ING050",
+        "cantidadAlumnos": 60
       }
     ]
   },
   {
     "nombre": "Carlos Díaz",
     "rut": "44.444.444-4",
-    "departamento": "Física",
+    "departamento": "Ciencias",
     "id": "d1e2f3a4-b5c6-7890-1234-567890abcdef",
     "asignaturasImpartidas": [
       {
-        "nombre": "Física General",
-        "codigo": "FIS101",
-        "cantidadAlumnos": 60
-      },
-      {
-        "nombre": "Mecánica Cuántica",
-        "codigo": "MCQ401",
-        "cantidadAlumnos": 18
+        "nombre": "Introduccion a la Quimica",
+        "codigo": "ICQ050",
+        "cantidadAlumnos": 1
       }
     ]
   }

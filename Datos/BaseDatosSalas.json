@@ -1,34 +1,77 @@
 [ {
-  "nombre" : "Sala 101",
+  "nombre" : "DCI-100",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
-  "horariosOcupados" : [ {
-    "dia" : "LUNES",
-    "bloqueEnum" : "BLOQUE_1",
-    "bloque" : 1
-  } ]
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "DCI-101",
+  "capacidad" : 20,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
 }, {
-  "nombre" : "Sala 102",
+  "nombre" : "DCI-102",
   "capacidad" : 30,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-}, {
-  "nombre" : "Laboratorio Computación A",
-  "capacidad" : 25,
+},
+  {
+  "nombre" : "Auditorio",
+  "capacidad" : 45,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-}, {
-  "nombre" : "Auditorio Principal",
-  "capacidad" : 100,
+},
+  {
+  "nombre" : "DCI-201",
+  "capacidad" : 20,
   "estado" : "DISPONIBLE",
-  "horariosOcupados" : [ {
-    "dia" : "LUNES",
-    "bloqueEnum" : "BLOQUE_1",
-    "bloque" : 1
-  } ]
-}, {
-  "nombre" : "Sala de Estudio C",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "DCI-202",
+  "capacidad" : 20,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "DCI-203",
+  "capacidad" : 20,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "R-101",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-} ]
+},
+  {
+  "nombre" : "R-102",
+  "capacidad" : 20,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "R-103",
+  "capacidad" : 15,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "R-104",
+  "capacidad" : 15,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "R-105",
+  "capacidad" : 15,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},
+  {
+  "nombre" : "R-106",
+  "capacidad" : 15,
+  "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+}  ]

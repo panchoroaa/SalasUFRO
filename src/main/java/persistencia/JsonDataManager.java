@@ -20,7 +20,6 @@ public class JsonDataManager {
     private static final String BASE_DATOS_DIR = System.getProperty("user.dir") + File.separator + "Datos" + File.separator;
     private static final String BACKUP_DIR = System.getProperty("user.dir") + File.separator + "Backup" + File.separator;
 
-
     private static final String PROFESORES_FILE_NAME = BASE_DATOS_DIR + "BaseDatosProfesores.json";
     private static final String SALAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosSalas.json";
     private static final String ASIGNATURAS_FILE_NAME = BASE_DATOS_DIR + "BaseDatosAsignaturas.json";

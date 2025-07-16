@@ -1,52 +1,37 @@
 [
   {
-    "nombre": "Programación Avanzada",
-    "codigo": "PA301",
+    "nombre": "Introduccion al Algebra",
+    "codigo": "IME028",
     "cantidadAlumnos": 20
   },
   {
-    "nombre": "Bases de Datos I",
-    "codigo": "BD101",
+    "nombre": "Algebra",
+    "codigo": "IME030",
     "cantidadAlumnos": 30
   },
   {
-    "nombre": "Cálculo I",
-    "codigo": "CAL101",
+    "nombre": "PreCalculo I",
+    "codigo": "IME027",
     "cantidadAlumnos": 40
   },
   {
-    "nombre": "Álgebra Lineal",
-    "codigo": "AL201",
+    "nombre": "PreCalculo II",
+    "codigo": "IME029",
     "cantidadAlumnos": 25
   },
   {
-    "nombre": "Diseño Gráfico Digital",
-    "codigo": "DGD101",
+    "nombre": "Habilidade Comunicativas en Ingenieria",
+    "codigo": "DFI052",
     "cantidadAlumnos": 15
   },
   {
-    "nombre": "Animación 3D",
-    "codigo": "ANI201",
-    "cantidadAlumnos": 10
+    "nombre": "Introduccion a la Quimica",
+    "codigo": "ICQ050",
+    "cantidadAlumnos": 1
   },
   {
-    "nombre": "Física General",
-    "codigo": "FIS101",
+    "nombre": "Ingenieria y Sociedad",
+    "codigo": "ING050",
     "cantidadAlumnos": 60
-  },
-  {
-    "nombre": "Mecánica Cuántica",
-    "codigo": "MCQ401",
-    "cantidadAlumnos": 18
-  },
-  {
-    "nombre": "Introducción a la Robótica",
-    "codigo": "ROB101",
-    "cantidadAlumnos": 22
-  },
-  {
-    "nombre": "Historia del Arte",
-    "codigo": "HAR101",
-    "cantidadAlumnos": 50
   }
 ]
