@@ -22,6 +22,15 @@ public class AsignacionControlador {
         this.asignaturas = dataManager.cargarAsignaturas();
         this.reservas = dataManager.cargarReservas();
     }
+    public List<Reserva> filtrarReservas(String rutProfesor, String nombreSala, String codigoAsignatura, DiaSemana dia) {
+        return reservas.stream()
+                .filter(r -> r != null && r.getHorario() != null && r.getHorario().getDia() != null)
+                .filter(r -> (rutProfesor == null || rutProfesor.isEmpty() || r.getRutProfesor().equalsIgnoreCase(rutProfesor)))
+                .filter(r -> (nombreSala == null || nombreSala.isEmpty() || r.getNombreSala().equalsIgnoreCase(nombreSala)))
+                .filter(r -> (codigoAsignatura == null || codigoAsignatura.isEmpty() || r.getCodigoAsignatura().equalsIgnoreCase(codigoAsignatura))) // Añadir esta línea
+                .filter(r -> (dia == null || r.getHorario().getDia() == dia))
+                .collect(Collectors.toList());
+    }
 
     public List<Profesor> getProfesores() { return profesores; }
     public List<Sala> getSalas() { return salas; }
