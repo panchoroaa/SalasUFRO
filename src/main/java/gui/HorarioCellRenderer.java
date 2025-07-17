@@ -28,24 +28,28 @@ public class HorarioCellRenderer extends DefaultTableCellRenderer {
         if (value instanceof Reserva) {
             Reserva reserva = (Reserva) value;
 
+            // Obtenemos la información necesaria
             Optional<Asignatura> asigOpt = controlador.getAsignaturaPorCodigo(reserva.getCodigoAsignatura());
-            Optional<Profesor> profOpt = controlador.getProfesorPorRut(reserva.getRutProfesor());
             Optional<Sala> salaOpt = controlador.getSalaPorNombre(reserva.getNombreSala());
 
+            // Preparamos las variables para mostrar
             String codigoAsignatura = asigOpt.map(Asignatura::getCodigo).orElse("N/A");
-            String nombreProfesor = profOpt.map(p -> p.getNombre().split(" ")[0]).orElse("N/A");
+            String nombreAsignatura = asigOpt.map(Asignatura::getNombre).orElse("Asignatura Desconocida"); // <-- CAMBIO CLAVE
             String nombreSala = salaOpt.map(Sala::getNombre).orElse("N/A");
 
+            // Construimos el texto con el NOMBRE DE LA ASIGNATURA en el medio
             setText(String.format("<html><div style='text-align: center;'><b>%s</b><br>%s<br>%s</div></html>",
-                    codigoAsignatura, nombreProfesor, nombreSala));
-            setBackground(new Color(220, 237, 255)); // Un color celeste claro para las celdas ocupadas
+                    codigoAsignatura, nombreAsignatura, nombreSala));
+
+            setBackground(new Color(220, 237, 255));
             setForeground(Color.BLACK);
+
         } else {
-            setText("");
+            setText(""); // Celda vacía
             setBackground(Color.WHITE);
         }
 
-        if (column == 0) {
+        if (column == 0) { // Columna de los bloques horarios
             setBackground(new Color(240, 240, 240));
             setFont(getFont().deriveFont(Font.BOLD));
             setText(value.toString());

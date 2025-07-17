@@ -63,9 +63,9 @@
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
   "horariosOcupados" : [ ]
-},  {
-  "nombre" : "D-106",
+}, {
+  "nombre" : "d-106",
   "capacidad" : 15,
   "estado" : "NO_DISPONIBLE",
   "horariosOcupados" : [ ]
-}]
+} ]
