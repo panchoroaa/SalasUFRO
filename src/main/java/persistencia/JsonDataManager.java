@@ -162,18 +162,34 @@ public class JsonDataManager {
     }
 
     private <T> void guardarDatos(String filePath, List<T> data) {
+        File primaryFile = new File(filePath);
+        File backupFile = new File(BACKUP_DIR + primaryFile.getName());
+
         try {
-            objectMapper.writeValue(new File(filePath), data);
+            objectMapper.writeValue(primaryFile, data);
+
+            objectMapper.writeValue(backupFile, data);
+
+            System.out.println("INFO: Datos guardados en " + primaryFile.getPath() + " y en " + backupFile.getPath());
+
         } catch (IOException e) {
-            System.err.println("Error al guardar lista en " + filePath + ": " + e.getMessage());
+            System.err.println("Error al guardar datos en " + primaryFile.getPath() + " y/o " + backupFile.getPath() + ": " + e.getMessage());
         }
     }
 
     private <K, V> void guardarMapaDatos(String filePath, Map<K, V> data) {
+        File primaryFile = new File(filePath);
+        File backupFile = new File(BACKUP_DIR + primaryFile.getName());
+
         try {
             objectMapper.writeValue(new File(filePath), data);
+
+            objectMapper.writeValue(backupFile, data);
+
+            System.out.println("INFO: Mapa guardado en " + primaryFile.getPath() + " y en " + backupFile.getPath());
+
         } catch (IOException e) {
-            System.err.println("Error al guardar mapa en " + filePath + ": " + e.getMessage());
+            System.err.println("Error al guardar mapa en " + primaryFile.getPath() + " y/o " + backupFile.getPath() + ": " + e.getMessage());
         }
     }
 }

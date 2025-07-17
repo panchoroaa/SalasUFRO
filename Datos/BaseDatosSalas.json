@@ -2,11 +2,7 @@
   "nombre" : "DCI-100",
   "capacidad" : 20,
   "estado" : "DISPONIBLE",
-  "horariosOcupados" : [ {
-    "dia" : "MARTES",
-    "bloqueEnum" : "BLOQUE_1",
-    "bloque" : 1
-  } ]
+  "horariosOcupados" : [ ]
 }, {
   "nombre" : "DCI-101",
   "capacidad" : 20,
@@ -66,5 +62,10 @@
   "nombre" : "R-106",
   "capacidad" : 15,
   "estado" : "DISPONIBLE",
+  "horariosOcupados" : [ ]
+},  {
+  "nombre" : "d-106",
+  "capacidad" : 15,
+  "estado" : "NO_DISPONIBLE",
   "horariosOcupados" : [ ]
 } ]
